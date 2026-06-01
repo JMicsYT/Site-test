@@ -35,11 +35,13 @@ _env_candidates = [
     Path.cwd() / ".env",           # при запуске из backend или после chdir(backend)
     _BACKEND_DIR / ".env",
 ]
+_in_docker = Path("/.dockerenv").exists()
 try:
     from dotenv import load_dotenv
     for _p in _env_candidates:
         if _p.exists():
-            load_dotenv(_p, override=True)
+            # В Docker переменные из compose env_file не перезаписываем backend/.env
+            load_dotenv(_p, override=not _in_docker)
             break
 except ImportError:
     pass
@@ -132,7 +134,9 @@ ASGI_APPLICATION = "shoshop.asgi.application"
 # Docker: POSTGRES_HOST=db, локально: POSTGRES_HOST=localhost.
 # ======================================================================
 _postgres_host = env("POSTGRES_HOST", "db")
-if _postgres_host == "db":
+# Локально без Docker имя «db» не резолвится — переключаемся на localhost.
+# В контейнере НЕ подменяем: gethostbyname иногда падает, хотя Postgres доступен по имени db.
+if _postgres_host == "db" and not _in_docker:
     import socket
     try:
         socket.gethostbyname("db")

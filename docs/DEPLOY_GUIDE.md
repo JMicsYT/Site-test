@@ -213,7 +213,7 @@ usermod -aG docker $USER
 ```bash
 mkdir -p /srv
 cd /srv
-git clone https://ВАШ-РЕПОЗИТОРИЙ/Site-test.git shoshop
+git clone https://github.com/JMicsYT/Site-test.git shoshop
 cd shoshop
 ```
 
