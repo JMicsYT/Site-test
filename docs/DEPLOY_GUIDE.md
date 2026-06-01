@@ -292,7 +292,48 @@ docker compose run --rm web python -c "from cryptography.fernet import Fernet; p
 Дублируйте тот же `.env` в `backend/.env` **или** убедитесь, что все ключи есть в корневом `.env` (Compose инжектит их в процесс `web`).  
 При bind-mount `./backend:/app` файл `backend/.env` на хосте тоже виден внутри контейнера — удобно держать **одинаковые** значения в обоих местах, чтобы не путаться при ручном `manage.py` с хоста.
 
-### 6.5. SSL-сертификаты для Nginx в Docker
+### 6.5. Деплой по IP без SSL (только HTTP)
+
+Пока нет домена и сертификата используйте **`shoshop.http.conf`** (уже прописан в `docker-compose.yml` по умолчанию).
+
+**На сервере обязательно:**
+
+```bash
+cd /srv/shoshop
+git pull
+ls -la config/nginx/shoshop.http.conf   # должен быть ФАЙЛ, не каталог
+docker compose config                   # без ошибок
+docker compose up -d --force-recreate nginx
+docker compose ps                       # nginx — Up, не Restarting
+docker compose logs nginx --tail=20     # нет [emerg]
+curl -I http://127.0.0.1/               # HTTP/1.1 200 или 302
+```
+
+**В корневом `.env`** (иначе сайт «не открывается» или уводит на https):
+
+```env
+DJANGO_SECURE_SSL_REDIRECT=false
+SECURE_PROXY_SSL_HEADER=false
+DJANGO_COOKIE_SECURE=false
+CSRF_TRUSTED_ORIGINS=http://ВАШ_IP
+```
+
+Готовый шаблон: [`config/env.docker.http.example`](../config/env.docker.http.example).
+
+**В браузере:** только `http://ВАШ_IP/` (не `https://`). Если раньше был HTTPS-конфиг, очистите HSTS для IP (Chrome: `chrome://net-internals/#hsts` → Delete domain) или откройте в режиме инкогнито.
+
+**Частые ошибки:**
+
+| Симптом | Причина | Решение |
+|---------|---------|---------|
+| Сайт не открывается, `nginx` Restarting | Нет файла `shoshop.http.conf` на сервере — Docker создал **папку** `default.conf` | `docker compose down`, удалить `config/nginx/shoshop.http.conf` если это каталог, `git pull`, снова `up -d` |
+| `socket() [::]:80 failed` в логах nginx | IPv6 отключён на хосте | Обновить `shoshop.http.conf` из репозитория (без `listen [::]:80`) |
+| Браузер сам переходит на `https://` | Старый `shoshop.conf` или HSTS / `DJANGO_SECURE_SSL_REDIRECT=true` | HTTP-конфиг + `.env` выше, инкогнито |
+| Порт 80 занят | Другой nginx/apache на хосте | `ss -tlnp \| grep :80`, остановить лишний сервис |
+
+После появления домена и сертификатов переходите на [§6.5.1](#651-ssl-сертификаты-для-nginx-в-docker-https).
+
+### 6.5.1. SSL-сертификаты для Nginx в Docker (HTTPS)
 
 Конфиг `config/nginx/shoshop.conf` ожидает файлы:
 
@@ -999,6 +1040,7 @@ GET https://ваш-домен.ru/health/
 | `connection refused` к Postgres | Неверный `POSTGRES_HOST` | `db` в Docker, `localhost` на VPS |
 | WebSocket не подключается | Только Gunicorn, нет Daphne / нет Upgrade в Nginx | [§11](#11-websocket-уведомления-в-реальном-времени) |
 | Письма не приходят | Нет SMTP | [§13](#13-почта-smtp) |
+| Сайт не открывается после `shoshop.http.conf` | nginx не стартует (IPv6), нет файла на сервере, или Django редирект на HTTPS | [§6.5](#65-деплой-по-ip-без-ssl-только-http) |
 | `POST /admin/login/` → **403** на HTTP (по IP) | Secure-cookies при `DEBUG=false` без HTTPS; нет `CSRF_TRUSTED_ORIGINS` | В `/srv/shoshop/.env`: `DJANGO_SECURE_SSL_REDIRECT=false`, `CSRF_TRUSTED_ORIGINS=http://ВАШ_IP`, при необходимости `DJANGO_COOKIE_SECURE=false`; `docker compose up -d --force-recreate web` |
 | После деплоя старый дизайн | Кеш браузера или CDN | Ctrl+F5, увеличить `?v=` в `base.html` |
 | `ModuleNotFoundError: cryptography` | Не установлены зависимости | `pip install -r backend/requirements.txt` |
