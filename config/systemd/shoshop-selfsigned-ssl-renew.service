@@ -1,0 +1,10 @@
+[Unit]
+Description=Renew ShoShop self-signed TLS certificate if expiring soon
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/srv/shoshop
+ExecStart=/srv/shoshop/scripts/ssl-selfsigned-renew.sh
+# Путь замените, если проект не в /srv/shoshop

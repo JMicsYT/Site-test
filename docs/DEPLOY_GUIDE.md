@@ -361,17 +361,57 @@ chmod 644 config/nginx/certs/fullchain.pem
 chmod 600 config/nginx/certs/privkey.pem
 ```
 
-**Вариант 2 — самоподписанный сертификат (только для теста)**
+**Вариант 2 — самоподписанный сертификат (тест + авто-перевыпуск)**
+
+Скрипты в репозитории: SAN для IP/домена, срок 90 дней, cron/systemd для обновления.
 
 ```bash
-mkdir -p config/nginx/certs
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-  -keyout config/nginx/certs/privkey.pem \
-  -out config/nginx/certs/fullchain.pem \
-  -subj "/CN=localhost"
+cd /srv/shoshop
+git pull
+chmod +x scripts/*.sh
+
+cp config/ssl-selfsigned.env.example config/ssl-selfsigned.env
+nano config/ssl-selfsigned.env   # SSL_IP=ваш_IP, при необходимости SSL_DAYS=90
+
+./scripts/ssl-selfsigned.sh --force
 ```
 
-Браузер покажет предупреждение — для продакшена используйте Let's Encrypt.
+В `.env` (шаблон [`config/env.docker.https-selfsigned.example`](../config/env.docker.https-selfsigned.example)):
+
+```env
+DJANGO_SECURE_SSL_REDIRECT=true
+SECURE_PROXY_SSL_HEADER=true
+DJANGO_COOKIE_SECURE=true
+CSRF_TRUSTED_ORIGINS=https://ВАШ_IP
+DJANGO_ALLOWED_HOSTS=ВАШ_IP
+```
+
+Запуск nginx с HTTPS:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.selfsigned.yml up -d --force-recreate nginx web
+```
+
+Откройте **`https://ВАШ_IP/`** → в браузере «Дополнительно» → перейти на сайт (предупреждение нормально для self-signed).
+
+**Авто-перевыпуск** (когда до истечения &lt; 30 дней, см. `RENEW_BEFORE_DAYS`):
+
+```bash
+# Проверка вручную
+./scripts/ssl-selfsigned-renew.sh
+
+# Cron (каждое воскресенье в 03:00)
+echo '0 3 * * 0 root cd /srv/shoshop && ./scripts/ssl-selfsigned-renew.sh >> /var/log/shoshop-ssl-renew.log 2>&1' | sudo tee /etc/cron.d/shoshop-ssl-renew
+
+# Или systemd
+sudo cp config/systemd/shoshop-selfsigned-ssl-renew.* /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now shoshop-selfsigned-ssl-renew.timer
+```
+
+Быстрый сценарий: `./scripts/enable-selfsigned-ssl.sh`
+
+Для продакшена используйте Let's Encrypt (вариант 1), не самоподписанный сертификат.
 
 Отредактируйте `config/nginx/shoshop.conf`: замените `server_name _;` на ваш домен:
 

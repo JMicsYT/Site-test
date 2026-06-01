@@ -55,7 +55,8 @@ services:
     image: nginx:1.25
     ports:
       - "80:80"
-      # HTTPS: раскомментируйте 443, certs и shoshop.conf — см. docs/DEPLOY_GUIDE.md §6.5.1
+      # HTTPS (тест): docker compose -f docker-compose.yml -f docker-compose.selfsigned.yml up -d
+      # Let's Encrypt: см. docs/DEPLOY_GUIDE.md §6.5.1
       # - "443:443"
     volumes:
       # HTTP по IP: нужен файл config/nginx/shoshop.http.conf + в .env DJANGO_SECURE_SSL_REDIRECT=false
