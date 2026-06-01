@@ -66,7 +66,16 @@ SECRET_KEY = env("DJANGO_SECRET_KEY", get_random_secret_key())
 
 DEBUG = env("DJANGO_DEBUG", "false").lower() == "true"
 
+# HTTPS в проде: редирект и secure-cookies. На HTTP (IP без SSL) оставьте false.
+_USE_HTTPS = env("DJANGO_SECURE_SSL_REDIRECT", "false").lower() == "true"
+
 ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+
+_csrf_origins = env("CSRF_TRUSTED_ORIGINS", "")
+if _csrf_origins.strip():
+    CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf_origins.split(",") if o.strip()]
+else:
+    CSRF_TRUSTED_ORIGINS = []
 
 
 INSTALLED_APPS = [
@@ -306,8 +315,14 @@ CELERY_RESULT_SERIALIZER = "json"
 # ======================================================================
 # PRODUCTION HARDENING
 # ======================================================================
-SESSION_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_SECURE = not DEBUG
+# Secure-cookies только при реальном HTTPS; иначе POST /admin/login/ → 403 на HTTP.
+_cookie_secure = env("DJANGO_COOKIE_SECURE", "").lower()
+if _cookie_secure in ("true", "false"):
+    _secure_cookies = _cookie_secure == "true"
+else:
+    _secure_cookies = _USE_HTTPS and not DEBUG
+SESSION_COOKIE_SECURE = _secure_cookies
+CSRF_COOKIE_SECURE = _secure_cookies
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
@@ -315,11 +330,11 @@ CSRF_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_AGE = int(env("SESSION_COOKIE_AGE", "1209600"))  # 2 недели
 SESSION_EXPIRE_AT_BROWSER_CLOSE = env("SESSION_EXPIRE_AT_BROWSER_CLOSE", "false").lower() == "true"
 
-# HSTS — форсируем HTTPS в продакшене
-SECURE_HSTS_SECONDS = 0 if DEBUG else 31536000
-SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
-SECURE_HSTS_PRELOAD = not DEBUG
-SECURE_SSL_REDIRECT = env("DJANGO_SECURE_SSL_REDIRECT", "false").lower() == "true"
+# HSTS только когда сайт реально отдаётся по HTTPS
+SECURE_HSTS_SECONDS = 31536000 if _USE_HTTPS and not DEBUG else 0
+SECURE_HSTS_INCLUDE_SUBDOMAINS = _USE_HTTPS and not DEBUG
+SECURE_HSTS_PRELOAD = _USE_HTTPS and not DEBUG
+SECURE_SSL_REDIRECT = _USE_HTTPS
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True

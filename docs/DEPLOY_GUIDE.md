@@ -999,6 +999,7 @@ GET https://ваш-домен.ru/health/
 | `connection refused` к Postgres | Неверный `POSTGRES_HOST` | `db` в Docker, `localhost` на VPS |
 | WebSocket не подключается | Только Gunicorn, нет Daphne / нет Upgrade в Nginx | [§11](#11-websocket-уведомления-в-реальном-времени) |
 | Письма не приходят | Нет SMTP | [§13](#13-почта-smtp) |
+| `POST /admin/login/` → **403** на HTTP (по IP) | Secure-cookies при `DEBUG=false` без HTTPS; нет `CSRF_TRUSTED_ORIGINS` | В `/srv/shoshop/.env`: `DJANGO_SECURE_SSL_REDIRECT=false`, `CSRF_TRUSTED_ORIGINS=http://ВАШ_IP`, при необходимости `DJANGO_COOKIE_SECURE=false`; `docker compose up -d --force-recreate web` |
 | После деплоя старый дизайн | Кеш браузера или CDN | Ctrl+F5, увеличить `?v=` в `base.html` |
 | `ModuleNotFoundError: cryptography` | Не установлены зависимости | `pip install -r backend/requirements.txt` |
 | Цифровые ключи не открываются | Сменили `FIELD_ENCRYPTION_KEY` | Восстановить старый ключ из бэкапа `.env` |
