@@ -1042,6 +1042,7 @@ GET https://ваш-домен.ru/health/
 | Письма не приходят | Нет SMTP | [§13](#13-почта-smtp) |
 | Сайт не открывается после `shoshop.http.conf` | nginx не стартует (IPv6), нет файла на сервере, или Django редирект на HTTPS | [§6.5](#65-деплой-по-ip-без-ssl-только-http) |
 | `POST /admin/login/` → **403** на HTTP (по IP) | Secure-cookies при `DEBUG=false` без HTTPS; нет `CSRF_TRUSTED_ORIGINS` | В `/srv/shoshop/.env`: `DJANGO_SECURE_SSL_REDIRECT=false`, `CSRF_TRUSTED_ORIGINS=http://ВАШ_IP`, при необходимости `DJANGO_COOKIE_SECURE=false`; `docker compose up -d --force-recreate web` |
+| Сайт «кривой»: ссылка «Перейти к содержимому», нет стилей | `main.css` не в volume / 404; кеш; открыли `:8000` вместо `:80` | `docker compose exec web python manage.py collectstatic --noinput`; `curl -I http://127.0.0.1/static/css/main.css` → **200**; только `http://IP/`; Ctrl+F5 |
 | После деплоя старый дизайн | Кеш браузера или CDN | Ctrl+F5, увеличить `?v=` в `base.html` |
 | `ModuleNotFoundError: cryptography` | Не установлены зависимости | `pip install -r backend/requirements.txt` |
 | Цифровые ключи не открываются | Сменили `FIELD_ENCRYPTION_KEY` | Восстановить старый ключ из бэкапа `.env` |

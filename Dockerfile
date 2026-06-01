@@ -11,8 +11,11 @@ COPY backend/requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY backend /app
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 ENV DJANGO_SETTINGS_MODULE=shoshop.settings
 
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["gunicorn", "shoshop.wsgi:application", "--bind", "0.0.0.0:8000"]
 
