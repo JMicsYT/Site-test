@@ -25,7 +25,9 @@ def _load_env_file(path: Path) -> None:
                     # убрать кавычки вокруг значения
                     if len(value) >= 2 and value[0] == value[-1] and value[0] in '"\'':
                         value = value[1:-1]
-                    os.environ[key] = value
+                    # Не затираем переменные, уже заданные Docker/compose (env_file)
+                    if key not in os.environ:
+                        os.environ[key] = value
     except Exception:
         pass
 
@@ -46,13 +48,14 @@ try:
 except ImportError:
     pass
 
-# Если переменные БД всё ещё не заданы — читаем .env вручную (обход проблем с путём/кодировкой)
-_db_user = os.getenv("POSTGRES_USER")
-if not _db_user or _db_user == "shoshop":
-    for _p in _env_candidates:
-        _load_env_file(_p)
-        if os.getenv("POSTGRES_USER") and os.getenv("POSTGRES_USER") != "shoshop":
-            break
+# Локально: подгрузить .env вручную, если ключи БД не заданы (в Docker — только compose env_file)
+if not _in_docker:
+    _db_user = os.getenv("POSTGRES_USER")
+    if not _db_user or _db_user == "shoshop":
+        for _p in _env_candidates:
+            _load_env_file(_p)
+            if os.getenv("POSTGRES_USER") and os.getenv("POSTGRES_USER") != "shoshop":
+                break
 
 
 def env(key: str, default: str | None = None) -> str:
