@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Включение 2FA — ShoShop{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container" style="max-width: 640px;">
+        <nav class="breadcrumb">
+            <a href="{% url 'home' %}">Главная</a>
+            <span class="sep">/</span>
+            <a href="{% url 'accounts:dashboard' %}">Личный кабинет</a>
+            <span class="sep">/</span>
+            <span>Двухфакторная аутентификация</span>
+        </nav>
+        <div class="card">
+            <h1 style="margin-top:0;">Включение двухфакторной аутентификации</h1>
+            <p class="muted">
+                Установите приложение-аутентификатор (Google&nbsp;Authenticator, Aegis, 1Password, Authy),
+                отсканируйте QR-код и введите 6-значный код для подтверждения.
+            </p>
+
+            <div style="display: flex; gap: var(--space-4); align-items: center; flex-wrap: wrap; justify-content: center; margin: var(--space-4) 0;">
+                <img src="{{ qr_data_uri }}" alt="QR-код для 2FA"
+                     style="width: 220px; height: 220px; border: 1px solid var(--border); border-radius: var(--radius); background: white; padding: var(--space-2);">
+                <div style="flex: 1; min-width: 220px;">
+                    <p class="muted" style="margin-bottom: var(--space-2);">Или введите ключ вручную:</p>
+                    <code style="display: block; padding: var(--space-2); background: var(--muted); border-radius: var(--radius-sm); word-break: break-all; font-size: 0.85rem;">{{ secret }}</code>
+                </div>
+            </div>
+
+            <form method="post" style="display: flex; flex-direction: column; gap: var(--space-2);">
+                {% csrf_token %}
+                <label for="code">Введите 6-значный код из приложения:</label>
+                <input type="text" id="code" name="code" inputmode="numeric" pattern="\d{6}"
+                       maxlength="6" autocomplete="one-time-code" required
+                       style="font-size: 1.5rem; text-align: center; letter-spacing: 0.4em; font-family: monospace;">
+                <div style="display: flex; gap: var(--space-2); margin-top: var(--space-2);">
+                    <button type="submit" class="btn btn-primary">Включить 2FA</button>
+                    <a href="{% url 'accounts:dashboard' %}" class="btn btn-ghost">Отмена</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

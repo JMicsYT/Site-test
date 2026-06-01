@@ -1,0 +1,58 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}Настройки — ShoShop{% endblock %}
+
+{% block breadcrumb_items %}
+    <span class="sep">/</span> <span>Настройки</span>
+{% endblock %}
+
+{% block content %}
+<h1 class="dashboard-page-title">Общие настройки</h1>
+
+<form method="post" class="dashboard-form">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <div class="settings-section">
+        <h2>Платежи</h2>
+        <label class="field">
+            <span>{{ form.payment_api_key.label }}</span>
+            {{ form.payment_api_key }}
+            {{ form.payment_api_key.errors }}
+        </label>
+        <label class="field">
+            <span>{{ form.payment_callback_url.label }}</span>
+            {{ form.payment_callback_url }}
+            {{ form.payment_callback_url.errors }}
+        </label>
+    </div>
+
+    <div class="settings-section">
+        <h2>Email</h2>
+        <label class="field">
+            <span>{{ form.email_from.label }}</span>
+            {{ form.email_from }}
+            {{ form.email_from.errors }}
+        </label>
+    </div>
+
+    <div class="settings-section">
+        <h2>Юридические тексты</h2>
+        <p class="muted">Отображаются на страницах «Пользовательское соглашение» и «Политика конфиденциальности».</p>
+        <label class="field">
+            <span>{{ form.terms_of_use.label }}</span>
+            {{ form.terms_of_use }}
+            {{ form.terms_of_use.errors }}
+        </label>
+        <label class="field">
+            <span>{{ form.privacy_policy.label }}</span>
+            {{ form.privacy_policy }}
+            {{ form.privacy_policy.errors }}
+        </label>
+    </div>
+
+    <div class="dashboard-form-actions">
+        <button class="btn btn-primary" type="submit">Сохранить настройки</button>
+    </div>
+</form>
+{% endblock %}

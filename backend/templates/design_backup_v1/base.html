@@ -1,0 +1,179 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <title>{% block title %}ShoShop — цифровые товары{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    {% block meta %}{% endblock %}
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%234f46e5'/><text x='16' y='22' font-size='18' text-anchor='middle' fill='white' font-family='system-ui'>S</text></svg>" type="image/svg+xml">
+    <link rel="stylesheet" href="{% static 'css/main.css' %}?v=18">
+</head>
+<body class="shoshop-body">
+<a href="#main-content" class="skip-link">Перейти к основному содержимому</a>
+<header class="shoshop-header">
+    <div class="container header-inner">
+        <a href="{% url 'home' %}" class="logo">ShoShop</a>
+        <nav class="nav">
+            <a href="{% url 'catalog:list' %}">Каталог</a>
+            <a href="{% url 'catalog:categories' %}">Категории</a>
+            <a href="{% url 'about' %}">О платформе</a>
+        </nav>
+        <form class="header-search" action="{% url 'catalog:list' %}" method="get" autocomplete="off">
+            <input type="search"
+                   name="q"
+                   placeholder="Поиск по товарам…"
+                   data-global-search>
+            <div class="search-suggestions" data-search-suggestions></div>
+        </form>
+        <div class="header-actions">
+            <button type="button" class="theme-toggle btn-ghost" aria-label="Переключить тему: светлая / тёмная" title="Светлая / тёмная тема">
+                <svg class="icon-light" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+                <svg class="icon-dark" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            </button>
+            <a href="{% url 'compare' %}" class="btn btn-ghost header-icon-btn" aria-label="Сравнение" title="Сравнение">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h13l-3-3"/><path d="M21 18H8l3 3"/></svg>
+                <span class="header-badge{% if not compare_count %} is-empty{% endif %}" data-compare-count>{% if compare_count %}{{ compare_count }}{% endif %}</span>
+            </a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'favorites:list' %}" class="btn btn-ghost header-icon-btn" aria-label="Избранное" title="Избранное">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    <span class="header-badge{% if not favorites_count %} is-empty{% endif %}" data-fav-count>{% if favorites_count %}{{ favorites_count }}{% endif %}</span>
+                </a>
+                <div class="notif-widget" data-notif-widget>
+                    <button type="button" class="btn btn-ghost header-icon-btn" aria-label="Уведомления" title="Уведомления" data-notif-toggle>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                        <span class="header-badge{% if not notifications_unread %} is-empty{% endif %}" data-notif-count>{% if notifications_unread %}{{ notifications_unread }}{% endif %}</span>
+                    </button>
+                    <div class="notif-panel" hidden data-notif-panel>
+                        <div class="notif-panel__header">
+                            <span>Уведомления</span>
+                            <button type="button" class="notif-panel__mark-all" data-notif-mark-all>Прочитать все</button>
+                        </div>
+                        <div class="notif-panel__body" data-notif-list>
+                            <div class="notif-panel__empty">Пока нет уведомлений</div>
+                        </div>
+                    </div>
+                </div>
+                <a href="{% url 'orders:cart' %}" class="btn btn-ghost header-icon-btn" aria-label="Корзина" title="Корзина">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                </a>
+                <a href="{% url 'accounts:dashboard' %}" class="header-avatar" title="Личный кабинет" aria-label="Личный кабинет">
+                    {% if user.avatar %}
+                        <img src="{{ user.avatar.url }}" alt="{{ user.full_name }}">
+                    {% else %}
+                        {{ user.initials }}
+                    {% endif %}
+                </a>
+                <a href="{% url 'accounts:logout' %}" class="btn btn-outline btn-sm" onclick="return confirm('Вы уверены, что хотите выйти?');">Выйти</a>
+            {% else %}
+                <a href="{% url 'accounts:login' %}" class="btn btn-ghost">Войти</a>
+                <a href="{% url 'accounts:register' %}" class="btn btn-primary">Регистрация</a>
+            {% endif %}
+        </div>
+    </div>
+</header>
+
+<main class="shoshop-main" id="main-content" tabindex="-1">
+    {% if messages %}
+    <div class="container messages-wrap">
+        {% for message in messages %}{% if 'dashboard' not in message.tags %}
+        <div class="alert alert-{{ message.tags }}" role="alert">{{ message }}</div>{% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+</main>
+
+<footer class="shoshop-footer">
+    <div class="container footer-inner">
+        <div class="footer-column">
+            <div class="logo">ShoShop</div>
+            <p class="muted" style="margin-top: 0.5rem;">Маркетплейс цифровых товаров с мгновенной выдачей после оплаты.</p>
+            <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+                <a href="#" aria-label="Telegram" class="social-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.665 3.717l-17.73 6.837c-1.21.486-1.203 1.161-.222 1.462l4.552 1.42 10.532-6.645c.498-.303.953-.14.579.192l-8.533 7.701h-.002l.002.001-.314 4.692c.46 0 .663-.211.921-.46l2.211-2.15 4.599 3.397c.848.467 1.457.227 1.668-.785l3.019-14.228c.309-1.239-.473-1.8-1.282-1.434z"/></svg>
+                </a>
+                <a href="#" aria-label="VK" class="social-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M15.684 0H8.316C1.592 0 0 1.592 0 8.316v7.368C0 22.408 1.592 24 8.316 24h7.368C22.408 24 24 22.408 24 15.684V8.316C24 1.592 22.393 0 15.684 0zm3.692 17.123h-1.744c-.66 0-.864-.525-2.05-1.727-1.033-1.003-1.49-1.137-1.744-1.137-.356 0-.458.102-.458.594v1.575c0 .424-.135.678-1.253.678-1.846 0-3.896-1.12-5.336-3.202C4.576 10.913 4 8.34 4 7.817c0-.254.102-.491.593-.491h1.744c.44 0 .61.203.779.677.863 2.49 2.303 4.675 2.896 4.675.22 0 .322-.102.322-.66V9.437c-.068-1.186-.695-1.287-.695-1.71 0-.204.17-.408.441-.408h2.744c.373 0 .508.203.508.643v3.473c0 .372.169.508.27.508.22 0 .407-.136.813-.542 1.254-1.406 2.151-3.574 2.151-3.574.119-.254.322-.491.763-.491h1.744c.525 0 .644.27.525.643-.22 1.017-2.354 4.031-2.354 4.031-.186.305-.254.44 0 .78.186.254.796.78 1.203 1.253.745.847 1.32 1.558 1.473 2.049.17.491-.085.745-.576.745z"/></svg>
+                </a>
+                <a href="mailto:support@shoshop.local" aria-label="Email" class="social-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                </a>
+            </div>
+        </div>
+        <div class="footer-column">
+            <h3>Каталог</h3>
+            <a href="{% url 'catalog:list' %}">Все товары</a>
+            <a href="{% url 'catalog:categories' %}">Категории</a>
+            <a href="{% url 'catalog:list' %}?type=game">Игры</a>
+            <a href="{% url 'catalog:list' %}?type=software">ПО</a>
+            <a href="{% url 'catalog:list' %}?type=course">Курсы</a>
+        </div>
+        <div class="footer-column">
+            <h3>Информация</h3>
+            <a href="{% url 'about' %}">О платформе</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'accounts:dashboard' %}">Личный кабинет</a>
+                <a href="{% url 'accounts:order_list' %}">Мои заказы</a>
+            {% else %}
+                <a href="{% url 'accounts:login' %}">Войти</a>
+                <a href="{% url 'accounts:register' %}">Регистрация</a>
+            {% endif %}
+        </div>
+        <div class="footer-column">
+            <h3>Правовая информация</h3>
+            <a href="{% url 'terms' %}">Пользовательское соглашение</a>
+            <a href="{% url 'privacy' %}">Политика конфиденциальности</a>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        © {{ PROJECT_NAME }} {% now "Y" %} · Все права защищены · Сделано с заботой о пользователях
+    </div>
+</footer>
+
+<button type="button" class="back-to-top" aria-label="Наверх" title="Наверх">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
+</button>
+
+{% if user.is_authenticated %}
+<div id="support-widget" class="support-widget">
+    <button type="button" class="support-widget__toggle" aria-label="Поддержка" title="Написать в поддержку">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </button>
+    <div class="support-widget__panel" hidden>
+        <div class="support-widget__header">
+            <span>Поддержка</span>
+            <button type="button" class="support-widget__close" aria-label="Закрыть">×</button>
+        </div>
+        <div class="support-widget__messages"></div>
+        <div class="support-widget__form-wrap">
+            <form class="support-widget__form" action="{% url 'support_chat_api' %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="ticket_id" value="">
+                <textarea name="body" rows="2" placeholder="Напишите сообщение..." maxlength="5000" required></textarea>
+                <button type="submit" class="btn btn-primary btn-sm">Отправить</button>
+            </form>
+        </div>
+    </div>
+</div>
+<link rel="stylesheet" href="{% static 'css/support_widget.css' %}?v=2">
+<script src="{% static 'js/support_widget.js' %}?v=3"></script>
+{% endif %}
+
+{% block scripts %}{% endblock %}
+<script src="{% static 'js/theme.js' %}?v=15"></script>
+<script src="{% static 'js/back-to-top.js' %}?v=15"></script>
+<script src="{% static 'js/search.js' %}?v=15"></script>
+<script src="{% static 'js/toasts.js' %}?v=15"></script>
+<script src="{% static 'js/favorites.js' %}?v=15"></script>
+<script src="{% static 'js/compare.js' %}?v=15"></script>
+<script src="{% static 'js/catalog-filters.js' %}?v=15"></script>
+{% if user.is_authenticated %}
+<script src="{% static 'js/notifications.js' %}?v=15"></script>
+{% endif %}
+</body>
+</html>
+

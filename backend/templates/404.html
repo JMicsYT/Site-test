@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Страница не найдена — ShoShop{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="card card--narrow">
+            <h1>404 — страница не найдена</h1>
+            <p class="muted">Похоже, ссылка неверная или страница была перемещена.</p>
+            <a href="{% url 'home' %}" class="btn btn-primary">На главную</a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+

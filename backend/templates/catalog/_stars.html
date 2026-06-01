@@ -1,0 +1,5 @@
+{% load l10n %}
+{# Параметры: value (0..5, может быть float) #}
+{% with filled=value|floatformat:"0"|add:"0" %}
+<span class="rating-stars" aria-hidden="true">{% for i in "12345"|make_list %}{% if forloop.counter <= filled %}★{% else %}☆{% endif %}{% endfor %}</span>
+{% endwith %}

@@ -1,0 +1,292 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}Дашборд — ShoShop{% endblock %}
+
+{% block breadcrumb_items %}
+    <span class="sep">/</span> <span>Дашборд</span>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-hero">
+    <div>
+        <h1 class="dashboard-page-title">Добро пожаловать, {{ request.user.first_name|default:request.user.email }}</h1>
+        <p class="dashboard-hero-sub">Краткая сводка по магазину за последнюю неделю</p>
+    </div>
+    <div class="quick-actions">
+        <a href="{% url 'dashboard:product_new' %}" class="btn btn-primary">+ Новый товар</a>
+        <a href="{% url 'dashboard:category_new' %}" class="btn btn-ghost">+ Категория</a>
+        <a href="{% url 'dashboard:orders_export' %}" class="btn btn-outline">Экспорт заказов</a>
+    </div>
+</div>
+
+<div class="dashboard-stats">
+    <div class="dashboard-stat-card">
+        <div class="stat-icon" style="background: rgba(59, 130, 246, 0.12); color: #3b82f6;">🛒</div>
+        <div class="stat-body">
+            <h3>Заказы за 7 дней</h3>
+            <div class="value">{{ orders_count_week }}</div>
+        </div>
+    </div>
+    <div class="dashboard-stat-card">
+        <div class="stat-icon" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">💰</div>
+        <div class="stat-body">
+            <h3>Выручка за 7 дней</h3>
+            <div class="value">{{ revenue_week }} ₽</div>
+        </div>
+    </div>
+    <div class="dashboard-stat-card">
+        <div class="stat-icon" style="background: rgba(139, 92, 246, 0.12); color: #8b5cf6;">📦</div>
+        <div class="stat-body">
+            <h3>Всего заказов</h3>
+            <div class="value">{{ total_orders }}</div>
+        </div>
+    </div>
+    <div class="dashboard-stat-card">
+        <div class="stat-icon" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b;">💎</div>
+        <div class="stat-body">
+            <h3>Вся выручка</h3>
+            <div class="value">{{ total_revenue }} ₽</div>
+        </div>
+    </div>
+    <div class="dashboard-stat-card">
+        <div class="stat-icon" style="background: rgba(236, 72, 153, 0.12); color: #ec4899;">👤</div>
+        <div class="stat-body">
+            <h3>Пользователей</h3>
+            <div class="value">{{ total_users }}</div>
+        </div>
+    </div>
+    <div class="dashboard-stat-card">
+        <div class="stat-icon" style="background: rgba(6, 182, 212, 0.12); color: #06b6d4;">✨</div>
+        <div class="stat-body">
+            <h3>Активных товаров</h3>
+            <div class="value">{{ total_products }}</div>
+        </div>
+    </div>
+</div>
+
+{# ======= Графики ======= #}
+<div class="dashboard-charts">
+    <div class="settings-section chart-card chart-card--wide">
+        <div class="section-head">
+            <h2>Выручка и заказы за 30 дней</h2>
+            <span class="muted small">Конверсия за период: <strong>{{ month_conversion }}%</strong> ({{ month_orders_paid }} из {{ month_orders_total }})</span>
+        </div>
+        <div class="chart-wrap"><canvas id="chartRevenue" height="120"></canvas></div>
+    </div>
+    <div class="settings-section chart-card">
+        <div class="section-head"><h2>Статусы заказов</h2></div>
+        <div class="chart-wrap"><canvas id="chartStatuses" height="180"></canvas></div>
+    </div>
+    <div class="settings-section chart-card">
+        <div class="section-head"><h2>Топ-5 товаров по выручке</h2></div>
+        <div class="chart-wrap"><canvas id="chartTopRev" height="180"></canvas></div>
+    </div>
+</div>
+
+<script id="charts-data" type="application/json">
+{
+    "labels_30d": {{ charts.labels_30d|safe }},
+    "revenue_30d": {{ charts.revenue_30d|safe }},
+    "orders_30d": {{ charts.orders_30d|safe }},
+    "status_labels": {{ charts.status_labels|safe }},
+    "status_values": {{ charts.status_values|safe }},
+    "top_rev_labels": {{ charts.top_rev_labels|safe }},
+    "top_rev_values": {{ charts.top_rev_values|safe }}
+}
+</script>
+
+{% if open_tickets_count or pending_reviews_count %}
+<div class="dashboard-alerts">
+    {% if open_tickets_count %}
+        <a href="{% url 'dashboard:support_list' %}?status=open" class="dashboard-alert dashboard-alert--warn">
+            <span class="alert-icon">💬</span>
+            <div>
+                <strong>{{ open_tickets_count }} открытых обращений</strong>
+                <span>Клиенты ждут ответа в поддержке</span>
+            </div>
+            <span class="alert-arrow">→</span>
+        </a>
+    {% endif %}
+    {% if pending_reviews_count %}
+        <a href="{% url 'dashboard:reviews' %}?status=pending" class="dashboard-alert dashboard-alert--info">
+            <span class="alert-icon">⭐</span>
+            <div>
+                <strong>{{ pending_reviews_count }} отзывов на модерации</strong>
+                <span>Проверьте новые отзывы от клиентов</span>
+            </div>
+            <span class="alert-arrow">→</span>
+        </a>
+    {% endif %}
+</div>
+{% endif %}
+
+<div class="dashboard-columns">
+    <div class="settings-section">
+        <div class="section-head">
+            <h2>Последние заказы</h2>
+            <a href="{% url 'dashboard:orders' %}" class="link-sm">Все заказы →</a>
+        </div>
+        <div class="dashboard-table-wrap">
+            <table class="dashboard-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Клиент</th>
+                        <th>Статус</th>
+                        <th>Сумма</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for o in latest_orders %}
+                        <tr>
+                            <td><a href="{% url 'dashboard:order_detail' o.id %}">#{{ o.id }}</a></td>
+                            <td>{{ o.user.email }}</td>
+                            <td><span class="status-pill status-{{ o.status }}">{{ o.get_status_display }}</span></td>
+                            <td>{{ o.amount }} {{ o.currency }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="4" class="muted">Заказов ещё нет.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="settings-section">
+        <div class="section-head">
+            <h2>Топ товаров</h2>
+            <a href="{% url 'dashboard:products' %}" class="link-sm">Все товары →</a>
+        </div>
+        <div class="dashboard-table-wrap">
+            <table class="dashboard-table">
+                <thead>
+                    <tr>
+                        <th>Товар</th>
+                        <th>Продано</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in top_products %}
+                        <tr>
+                            <td><a href="{% url 'dashboard:product_edit' p.id %}">{{ p.name }}</a></td>
+                            <td><strong>{{ p.cnt }}</strong></td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="2" class="muted">Продаж ещё нет.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="settings-section">
+    <div class="section-head">
+        <h2>Последние обращения в поддержку</h2>
+        <a href="{% url 'dashboard:support_list' %}" class="link-sm">Все обращения →</a>
+    </div>
+    {% if recent_tickets %}
+        <div class="dashboard-table-wrap">
+            <table class="dashboard-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Клиент</th>
+                        <th>Статус</th>
+                        <th>Сообщений</th>
+                        <th>Обновлено</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in recent_tickets %}
+                    <tr>
+                        <td>#{{ t.id }}</td>
+                        <td>{{ t.user.email }}</td>
+                        <td>
+                            {% if t.status == 'open' %}
+                                <span class="status-pill status-open">Открыт</span>
+                            {% else %}
+                                <span class="status-pill status-paid">Завершён</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ t.messages.count }}</td>
+                        <td>{{ t.updated_at|date:"d.m.Y H:i" }}</td>
+                        <td><a href="{% url 'dashboard:support_detail' t.id %}" class="btn btn-sm btn-outline">Открыть</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="muted">Обращений в поддержку пока нет.</p>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block dashboard_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+    var raw = document.getElementById('charts-data');
+    if (!raw || typeof Chart === 'undefined') return;
+    var data;
+    try { data = JSON.parse(raw.textContent); } catch (e) { return; }
+
+    var css = getComputedStyle(document.documentElement);
+    var primary = (css.getPropertyValue('--primary') || '#4f46e5').trim();
+    var muted = (css.getPropertyValue('--muted-foreground') || '#6b7280').trim();
+
+    Chart.defaults.color = muted;
+
+    var el1 = document.getElementById('chartRevenue');
+    if (el1) {
+        new Chart(el1, {
+            type: 'line',
+            data: {
+                labels: data.labels_30d,
+                datasets: [
+                    { label: 'Выручка, ₽', data: data.revenue_30d, borderColor: primary, backgroundColor: primary + '22', fill: true, tension: 0.35, yAxisID: 'y' },
+                    { label: 'Заказы, шт',  data: data.orders_30d,  borderColor: '#10b981', backgroundColor: '#10b98122', fill: false, tension: 0.35, yAxisID: 'y1' }
+                ]
+            },
+            options: {
+                responsive: true,
+                interaction: { mode: 'index', intersect: false },
+                scales: {
+                    y:  { position: 'left',  beginAtZero: true, grid: { color: muted + '33' } },
+                    y1: { position: 'right', beginAtZero: true, grid: { display: false } },
+                    x:  { grid: { color: muted + '22' } }
+                },
+                plugins: { legend: { position: 'top' } }
+            }
+        });
+    }
+
+    var el2 = document.getElementById('chartStatuses');
+    if (el2 && data.status_values && data.status_values.length) {
+        new Chart(el2, {
+            type: 'doughnut',
+            data: {
+                labels: data.status_labels,
+                datasets: [{ data: data.status_values, backgroundColor: ['#4f46e5','#10b981','#f59e0b','#ef4444','#6366f1','#06b6d4'], borderWidth: 0 }]
+            },
+            options: { plugins: { legend: { position: 'bottom' } } }
+        });
+    }
+
+    var el3 = document.getElementById('chartTopRev');
+    if (el3 && data.top_rev_values && data.top_rev_values.length) {
+        new Chart(el3, {
+            type: 'bar',
+            data: { labels: data.top_rev_labels, datasets: [{ label: 'Выручка, ₽', data: data.top_rev_values, backgroundColor: primary, borderRadius: 6 }] },
+            options: {
+                indexAxis: 'y',
+                plugins: { legend: { display: false } },
+                scales: { x: { beginAtZero: true, grid: { color: muted + '22' } }, y: { grid: { display: false } } }
+            }
+        });
+    }
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}О платформе — ShoShop{% endblock %}
+
+{% block content %}
+<section class="section" id="for-whom">
+    <div class="container">
+        <h2>Для кого ShoShop</h2>
+        <div class="grid for-whom-grid">
+            <article class="card soft-card">
+                <div class="card-icon icon-gamer">🎮</div>
+                <h3>Геймеры</h3>
+                <p>Игровые ключи, DLC и внутриигровая валюта с моментальной доставкой и защитой от повторной активации.</p>
+            </article>
+            <article class="card soft-card">
+                <div class="card-icon icon-business">💼</div>
+                <h3>Специалисты и бизнес</h3>
+                <p>Лицензии на профессиональное ПО, подписки и инструменты для командной работы и автоматизации.</p>
+            </article>
+            <article class="card soft-card">
+                <div class="card-icon icon-education">📚</div>
+                <h3>Самообразование</h3>
+                <p>Онлайн‑курсы, PDF‑руководства, практические воркшопы и материалы для самостоятельного обучения.</p>
+            </article>
+            <article class="card soft-card">
+                <div class="card-icon icon-creator">🎨</div>
+                <h3>Творческие специалисты</h3>
+                <p>Шаблоны, шрифты, 3D‑модели, звуки и медиапаки для дизайнеров, монтажёров и создателей контента.</p>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="about">
+    <div class="container about-grid">
+        <div>
+            <h2>О платформе ShoShop</h2>
+            <p>
+                ShoShop — защищённая платформа для продажи цифровых товаров с автоматической выдачей.
+                Мы используем HTTPS, защищённое хранение паролей и журналы событий безопасности.
+            </p>
+            <p class="muted">
+                Все операции проходят через проверенный платёжный шлюз, а доступ к товарам сохраняется
+                в вашем личном кабинете.
+            </p>
+        </div>
+        <div class="about-highlights">
+            <div class="highlight">
+                <span class="status status-success">Безопасность</span>
+                <p>XSS/CSRF‑защита, ограничение попыток входа и логирование подозрительных действий.</p>
+            </div>
+            <div class="highlight">
+                <span class="status status-info">Производительность</span>
+                <p>Кеширование, асинхронная обработка писем и уведомлений через Celery + Redis.</p>
+            </div>
+            <div class="highlight">
+                <span class="status status-warn">Надёжность</span>
+                <p>Резервное копирование БД и дружелюбные страницы ошибок 4xx/5xx.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="support">
+    <div class="container">
+        <h2>Поддержка</h2>
+        <p>
+            По вопросам работы платформы и оплаты обращайтесь по контактам, указанным на сайте.
+            Перед обращением ознакомьтесь с разделами <a href="{% url 'terms' %}">Пользовательское соглашение</a>
+            и <a href="{% url 'privacy' %}">Политика конфиденциальности</a>.
+        </p>
+    </div>
+</section>
+{% endblock %}

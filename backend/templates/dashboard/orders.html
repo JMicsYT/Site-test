@@ -1,0 +1,128 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}Заказы — админка ShoShop{% endblock %}
+
+{% block breadcrumb_items %}
+    <span class="sep">/</span> <span>Заказы</span>
+{% endblock %}
+
+{% block content %}
+<h1 class="dashboard-page-title">Заказы</h1>
+
+<form method="get" class="dashboard-toolbar">
+    <label class="field">
+        <span>Поиск</span>
+        <input type="search" name="q" value="{{ q }}" placeholder="ID или email клиента">
+    </label>
+    <label class="field">
+        <span>Статус</span>
+        <select name="status" onchange="this.form.submit()">
+            <option value="">Все</option>
+            {% for key, label in status_choices %}
+                <option value="{{ key }}" {% if status_filter == key %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label class="field">
+        <span>С</span>
+        <input type="date" name="date_from" value="{{ date_from }}" onchange="this.form.submit()">
+    </label>
+    <label class="field">
+        <span>По</span>
+        <input type="date" name="date_to" value="{{ date_to }}" onchange="this.form.submit()">
+    </label>
+    <input type="hidden" name="page" value="1">
+    <button type="submit" class="btn btn-ghost btn-sm">Применить</button>
+    <div style="margin-left: auto; display: flex; gap: 6px;">
+        <a href="{% url 'dashboard:orders_export' %}?format=csv&{{ request.GET.urlencode }}" class="btn btn-outline btn-sm">CSV</a>
+        <a href="{% url 'dashboard:orders_export' %}?format=xlsx&{{ request.GET.urlencode }}" class="btn btn-outline btn-sm">XLSX</a>
+        <a href="{% url 'dashboard:orders_export' %}?format=pdf&{{ request.GET.urlencode }}" class="btn btn-outline btn-sm">PDF</a>
+    </div>
+</form>
+
+<form method="post" action="{% url 'dashboard:orders' %}">
+    {% csrf_token %}
+    <div class="bulk-bar">
+        <span class="muted small">Массовое действие:</span>
+        <select name="bulk_action">
+            <option value="paid">Пометить как оплаченные</option>
+            <option value="fulfilled">Пометить как выданные</option>
+            <option value="cancelled">Отменить</option>
+        </select>
+        <button type="submit" class="btn btn-primary btn-sm"
+                onclick="return confirm('Применить выбранное действие к отмеченным заказам?');">
+            Применить к выбранным
+        </button>
+        <span class="muted small" style="margin-left: auto;" data-bulk-count>Выбрано: 0</span>
+    </div>
+
+    <div class="dashboard-table-wrap">
+        <table class="dashboard-table">
+            <thead>
+                <tr>
+                    <th style="width: 28px;"><input type="checkbox" data-bulk-toggle-all></th>
+                    <th>#</th>
+                    <th>Пользователь</th>
+                    <th>Статус</th>
+                    <th>Сумма</th>
+                    <th>Дата</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for o in orders %}
+                    <tr>
+                        <td><input type="checkbox" name="order_ids" value="{{ o.id }}" data-bulk-item></td>
+                        <td><a href="{% url 'dashboard:order_detail' o.id %}">#{{ o.id }}</a></td>
+                        <td>{{ o.user.email }}</td>
+                        <td><span class="status-pill status-{{ o.status }}">{{ o.get_status_display }}</span></td>
+                        <td>{{ o.amount }} {{ o.currency }}</td>
+                        <td>{{ o.created_at|date:"d.m.Y H:i" }}</td>
+                        <td class="actions">
+                            <a href="{% url 'dashboard:order_detail' o.id %}" class="btn btn-ghost btn-sm">Открыть</a>
+                            <a href="{% url 'dashboard:order_edit' o.id %}" class="btn btn-outline btn-sm">Статус</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="7" class="muted">Заказов нет.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</form>
+
+{% if paginator.num_pages > 1 %}
+<nav class="pagination">
+    {% if orders.has_previous %}
+        <a href="?page={{ orders.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}{% if q %}&q={{ q }}{% endif %}">←</a>
+    {% endif %}
+    <span class="current">Стр. {{ orders.number }} из {{ paginator.num_pages }}</span>
+    {% if orders.has_next %}
+        <a href="?page={{ orders.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}{% if q %}&q={{ q }}{% endif %}">→</a>
+    {% endif %}
+</nav>
+{% endif %}
+{% endblock %}
+
+{% block dashboard_scripts %}
+<script>
+(function () {
+    var toggleAll = document.querySelector('[data-bulk-toggle-all]');
+    var items = document.querySelectorAll('[data-bulk-item]');
+    var counter = document.querySelector('[data-bulk-count]');
+    function refresh() {
+        var n = 0;
+        items.forEach(function (el) { if (el.checked) n += 1; });
+        if (counter) counter.textContent = 'Выбрано: ' + n;
+    }
+    if (toggleAll) {
+        toggleAll.addEventListener('change', function () {
+            items.forEach(function (el) { el.checked = toggleAll.checked; });
+            refresh();
+        });
+    }
+    items.forEach(function (el) { el.addEventListener('change', refresh); });
+    refresh();
+})();
+</script>
+{% endblock %}

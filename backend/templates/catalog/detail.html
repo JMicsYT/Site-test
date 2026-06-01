@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ product.name }} — ShoShop{% endblock %}
+{% block meta %}
+<meta name="description" content="{{ product.short_description }}">
+{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <nav class="breadcrumb">
+            <a href="{% url 'home' %}">Главная</a>
+            <span class="sep">/</span>
+            <a href="{% url 'catalog:list' %}">Каталог</a>
+            <span class="sep">/</span>
+            <a href="{% url 'catalog:list' %}?category={{ product.category.slug }}">{{ product.category.name }}</a>
+            <span class="sep">/</span>
+            <span>{{ product.name|truncatechars:40 }}</span>
+        </nav>
+        <div class="product-layout">
+            <div class="product-media">
+                <div class="media-cover">
+                {% with image=product.media.all.0 %}
+                    {% if image %}
+                        <img src="{{ image.url }}" alt="{{ product.name }}">
+                    {% else %}
+                        <div class="media-placeholder">Обложка товара</div>
+                    {% endif %}
+                {% endwith %}
+                </div>
+                {% if product.media.count > 1 %}
+                <div class="media-thumbs">
+                {% for m in product.media.all %}
+                    <div class="thumb">
+                        <img src="{{ m.url }}" alt="">
+                    </div>
+                {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="product-main">
+                <div class="product-tags">
+                    <span class="chip">{{ product.get_product_type_display }}</span>
+                    <span class="chip chip-purpose">{{ product.get_purpose_display }}</span>
+                    <span class="chip">{{ product.get_license_type_display }}</span>
+                    {% if product.is_new %}<span class="chip" style="background: var(--primary); color: white; border-color: var(--primary);">Новинка</span>{% endif %}
+                    {% if product.has_discount %}<span class="chip" style="background: #ef4444; color: white; border-color: #ef4444;">−{{ product.discount_percent }}%</span>{% endif %}
+                </div>
+                <h1>{{ product.name }}</h1>
+                <p class="muted" style="font-size: 1.05rem;">{{ product.short_description }}</p>
+
+                <div class="product-purchase-card">
+                    <div>
+                        {% if product.has_discount %}
+                            <div class="price price-lg">{{ product.discount_price }} ₽
+                                <span style="font-size: 0.85rem; color: var(--muted-foreground); text-decoration: line-through; margin-left: 0.5rem; font-weight: 400;">{{ product.price }} ₽</span>
+                            </div>
+                        {% else %}
+                            <div class="price price-lg">{{ product.price }} ₽</div>
+                        {% endif %}
+                        <div class="muted">⚡ Мгновенная выдача после оплаты</div>
+                    </div>
+                    <div class="product-actions-row">
+                        <form method="post" action="{% url 'orders:checkout' product.id %}">
+                            {% csrf_token %}
+                            <button class="btn btn-primary" type="submit">Купить сейчас</button>
+                        </form>
+                        <form method="post" action="{% url 'orders:add_to_cart' product.id %}">
+                            {% csrf_token %}
+                            <button class="btn btn-ghost" type="submit">В корзину</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="product-highlights">
+                    <div class="product-highlight">
+                        <span class="product-highlight__icon">🔒</span>
+                        <div>
+                            <strong>Безопасно</strong>
+                            <p>Защищённая оплата и шифрование данных.</p>
+                        </div>
+                    </div>
+                    <div class="product-highlight">
+                        <span class="product-highlight__icon">♾️</span>
+                        <div>
+                            <strong>Пожизненный доступ</strong>
+                            <p>Ключ сохраняется в личном кабинете навсегда.</p>
+                        </div>
+                    </div>
+                    <div class="product-highlight">
+                        <span class="product-highlight__icon">💬</span>
+                        <div>
+                            <strong>Поддержка</strong>
+                            <p>Поможем с активацией в любое время.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-section">
+                    <h2>Описание</h2>
+                    <div class="product-description">{{ product.description|linebreaks }}</div>
+                </div>
+
+                <div class="product-section" id="reviews">
+                    <div class="reviews-header">
+                        <h2>Отзывы</h2>
+                        {% if product.reviews_count %}
+                        <div class="reviews-summary">
+                            <span class="reviews-summary__score">{{ product.avg_rating|floatformat:1 }}</span>
+                            <span class="rating-stars" aria-hidden="true">
+                                {% with avg=product.avg_rating|floatformat:0|add:0 %}
+                                {% for i in "12345" %}{% if forloop.counter <= avg %}★{% else %}☆{% endif %}{% endfor %}
+                                {% endwith %}
+                            </span>
+                            <span class="muted small">на основе {{ product.reviews_count }} отз.</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    {% if can_review and review_form %}
+                    <form method="post" action="{% url 'catalog:review_create' product.slug %}" class="review-form">
+                        {% csrf_token %}
+                        <fieldset class="review-form__rating">
+                            <legend>Ваша оценка</legend>
+                            <div class="rating-input">
+                                {% for i in "54321" %}
+                                    <input type="radio" name="rating" value="{{ i }}" id="rate-{{ i }}" {% if i == "5" %}checked{% endif %}>
+                                    <label for="rate-{{ i }}" title="{{ i }} звёзд">★</label>
+                                {% endfor %}
+                            </div>
+                        </fieldset>
+                        <textarea name="text" rows="4" maxlength="2000"
+                                  placeholder="Расскажите о вашем опыте с этим товаром…"
+                                  class="review-form__text"></textarea>
+                        <button type="submit" class="btn btn-primary">Отправить отзыв</button>
+                        <p class="muted small" style="margin: 6px 0 0;">После проверки модератором отзыв появится на сайте.</p>
+                    </form>
+                    {% elif already_reviewed %}
+                        <div class="review-note">Вы уже оставили отзыв на этот товар — спасибо!</div>
+                    {% elif user.is_authenticated %}
+                        <div class="review-note review-note--muted">
+                            Оставить отзыв могут только покупатели — оформите заказ, чтобы поделиться мнением.
+                        </div>
+                    {% else %}
+                        <div class="review-note review-note--muted">
+                            <a href="{% url 'accounts:login' %}?next={{ request.path }}">Войдите</a>,
+                            чтобы оставить отзыв после покупки.
+                        </div>
+                    {% endif %}
+
+                    <div class="reviews-list">
+                        {% for r in product.reviews.all %}
+                            <article class="review">
+                                <div class="review-header">
+                                    <span class="review-avatar" aria-hidden="true">
+                                        {% if r.user.avatar %}
+                                            <img src="{{ r.user.avatar.url }}" alt="">
+                                        {% else %}
+                                            {{ r.user.initials|default:"?" }}
+                                        {% endif %}
+                                    </span>
+                                    <div style="flex:1; min-width:0;">
+                                        <div class="review-author-line">
+                                            <strong>{{ r.user.full_name|default:r.user.email|default:"Покупатель" }}</strong>
+                                            <span class="rating-stars" aria-hidden="true">
+                                                {% for i in "12345" %}{% if forloop.counter <= r.rating %}★{% else %}☆{% endif %}{% endfor %}
+                                            </span>
+                                        </div>
+                                        <div class="muted small">{{ r.created_at|date:"d.m.Y H:i" }}</div>
+                                    </div>
+                                </div>
+                                {% if r.text %}<p class="review-text">{{ r.text }}</p>{% endif %}
+                            </article>
+                        {% empty %}
+                            <p class="muted">Отзывов пока нет. Станьте первым, кто оставит отзыв!</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if related %}
+        <div class="section-header" style="margin-top: var(--space-8);">
+            <div>
+                <h2 class="section-title">Похожие товары</h2>
+                <p class="muted small" style="margin: 0.25rem 0 0;">Другие популярные товары из категории «{{ product.category.name }}»</p>
+            </div>
+            <a href="{% url 'catalog:list' %}?category={{ product.category.slug }}" class="link-muted">Ещё →</a>
+        </div>
+        <div class="products-grid products-grid--home">
+            {% for p in related %}
+                {% include "catalog/_product_card.html" with product=p %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% with rv=recently_viewed_products %}
+        {% if rv and rv|length > 1 %}
+        <div class="section-header" style="margin-top: var(--space-8);">
+            <div>
+                <h2 class="section-title">Вы недавно смотрели</h2>
+            </div>
+        </div>
+        <div class="products-grid products-grid--home">
+            {% for p in rv %}
+                {% if p.id != product.id %}
+                    {% include "catalog/_product_card.html" with product=p %}
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+    </div>
+</section>
+{% endblock %}
+

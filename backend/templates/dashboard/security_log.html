@@ -1,0 +1,63 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}Журнал безопасности — ShoShop{% endblock %}
+
+{% block breadcrumb_items %}
+    <span class="sep">/</span> <span>Безопасность</span>
+{% endblock %}
+
+{% block content %}
+<h1 class="dashboard-page-title">Журнал безопасности</h1>
+
+<form method="get" class="dashboard-toolbar">
+    <label class="field">
+        <span>Тип события</span>
+        <select name="event_type" onchange="this.form.submit()">
+            <option value="">Все</option>
+            {% for key, label in event_types %}
+                <option value="{{ key }}" {% if event_type_filter == key %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <button type="submit" class="btn btn-ghost btn-sm">Применить</button>
+</form>
+
+<div class="dashboard-table-wrap">
+    <table class="dashboard-table">
+        <thead>
+            <tr>
+                <th>Время</th>
+                <th>Тип</th>
+                <th>Описание</th>
+                <th>Пользователь</th>
+                <th>IP</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for e in events %}
+                <tr>
+                    <td>{{ e.created_at|date:"d.m.Y H:i:s" }}</td>
+                    <td>{{ e.get_event_type_display }}</td>
+                    <td>{{ e.description|truncatechars:80 }}</td>
+                    <td>{{ e.user.email|default:"—" }}</td>
+                    <td>{{ e.ip_address|default:"—" }}</td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="5" class="muted">Событий пока нет.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if paginator.num_pages > 1 %}
+<nav class="pagination">
+    {% if events.has_previous %}
+        <a href="?page={{ events.previous_page_number }}{% if event_type_filter %}&event_type={{ event_type_filter }}{% endif %}">←</a>
+    {% endif %}
+    <span class="current">Стр. {{ events.number }} из {{ paginator.num_pages }}</span>
+    {% if events.has_next %}
+        <a href="?page={{ events.next_page_number }}{% if event_type_filter %}&event_type={{ event_type_filter }}{% endif %}">→</a>
+    {% endif %}
+</nav>
+{% endif %}
+{% endblock %}

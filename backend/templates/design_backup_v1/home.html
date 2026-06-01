@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}ShoShop — маркетплейс цифровых товаров{% endblock %}
+{% block meta %}
+<meta name="description" content="Маркетплейс цифровых товаров: игры, ключи, ПО, курсы и подписки с мгновенной выдачей после оплаты.">
+<meta name="keywords" content="цифровые товары, ключи, игры, курсы, маркетплейс, ShoShop">
+{% endblock %}
+
+{% block content %}
+<section class="hero-compact">
+    <div class="container">
+        <div class="hero-badge">✨ Цифровые товары с мгновенной выдачей</div>
+        <h1 class="hero-compact__title">Маркетплейс <span class="text-primary">цифровых товаров</span></h1>
+        <p class="hero-compact__subtitle">Игры, ключи, ПО, курсы и подписки — с мгновенной выдачей после оплаты</p>
+        <div style="display: flex; gap: var(--space-3); justify-content: center; flex-wrap: wrap;">
+            <a href="{% url 'catalog:list' %}" class="btn btn-primary btn-hero">Перейти в каталог</a>
+            <a href="{% url 'catalog:categories' %}" class="btn btn-outline btn-hero">Все категории</a>
+        </div>
+        <div class="hero-features">
+            <span>⚡ Мгновенная доставка</span>
+            <span>🔒 Безопасная оплата</span>
+            <span>📦 Пожизненный доступ</span>
+            <span>💬 Поддержка 24/7</span>
+        </div>
+        <div class="hero-stats">
+            <div class="hero-stat"><div class="hero-stat__value">{{ home_stats.products|default:"—" }}</div><div class="hero-stat__label">Товаров</div></div>
+            <div class="hero-stat"><div class="hero-stat__value">{{ home_stats.clients|default:"—" }}</div><div class="hero-stat__label">Клиентов</div></div>
+            <div class="hero-stat"><div class="hero-stat__value">{{ home_stats.categories|default:"—" }}</div><div class="hero-stat__label">Категорий</div></div>
+            <div class="hero-stat"><div class="hero-stat__value">4.9</div><div class="hero-stat__label">Рейтинг</div></div>
+        </div>
+    </div>
+</section>
+
+{% if home_categories %}
+<section class="section" style="padding-top: var(--space-3); padding-bottom: var(--space-5);">
+    <div class="container">
+        <div class="section-header">
+            <div>
+                <h2 class="section-title">Категории</h2>
+                <p class="muted small" style="margin: 0.25rem 0 0;">Выберите направление под ваши интересы</p>
+            </div>
+            <a href="{% url 'catalog:categories' %}" class="link-muted">Все категории →</a>
+        </div>
+        <div class="category-grid">
+            {% for cat in home_categories %}
+            <a href="{% url 'catalog:list' %}?category={{ cat.slug }}"
+               class="category-card"
+               style="--cat-color: {{ cat.color|default:'#4f46e5' }};">
+                <div class="category-card__icon">
+                    {% if cat.image_url %}
+                        <img src="{{ cat.image_url }}" alt="{{ cat.name }}">
+                    {% elif cat.icon %}
+                        <span>{{ cat.icon }}</span>
+                    {% else %}
+                        <span>{{ cat.name|first|upper }}</span>
+                    {% endif %}
+                </div>
+                <div class="category-card__body">
+                    <h3 class="category-card__title">{{ cat.name }}</h3>
+                    {% if cat.description %}
+                        <p class="category-card__desc">{{ cat.description|truncatechars:80 }}</p>
+                    {% endif %}
+                    <span class="category-card__count">
+                        {{ cat.product_count }} товар{{ cat.product_count|pluralize:",а,ов" }}
+                    </span>
+                </div>
+                <span class="category-card__arrow" aria-hidden="true">→</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<section class="banners-section">
+    <div class="container">
+        <div class="banners-grid">
+            <a href="{% url 'catalog:list' %}?type=game" class="banner-card banner-card--game">
+                <span class="banner-card__icon">🎮</span>
+                <span class="banner-card__label">Игры</span>
+                <span class="banner-card__title">Игровые ключи и пополнения</span>
+            </a>
+            <a href="{% url 'catalog:list' %}?type=course" class="banner-card banner-card--course">
+                <span class="banner-card__icon">🎓</span>
+                <span class="banner-card__label">Обучение</span>
+                <span class="banner-card__title">Курсы и материалы</span>
+            </a>
+            <a href="{% url 'catalog:list' %}?type=software" class="banner-card banner-card--software">
+                <span class="banner-card__icon">💻</span>
+                <span class="banner-card__label">ПО</span>
+                <span class="banner-card__title">Лицензии и подписки</span>
+            </a>
+            <a href="{% url 'catalog:list' %}" class="banner-card banner-card--all">
+                <span class="banner-card__icon">✨</span>
+                <span class="banner-card__label">Всё</span>
+                <span class="banner-card__title">Весь каталог</span>
+            </a>
+        </div>
+    </div>
+</section>
+
+{% if featured_products %}
+<section class="section section--products">
+    <div class="container">
+        <div class="section-header">
+            <div>
+                <h2 class="section-title">Рекомендуем</h2>
+                <p class="muted small" style="margin: 0.25rem 0 0;">Выбор редакции — лучшие товары недели</p>
+            </div>
+            <a href="{% url 'catalog:list' %}" class="link-muted">Все товары →</a>
+        </div>
+        <div class="products-grid products-grid--home">
+            {% for product in featured_products %}
+                {% include "catalog/_product_card.html" with product=product %}
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% if recently_viewed_products %}
+<section class="section section--products section--recent">
+    <div class="container">
+        <div class="section-header">
+            <div>
+                <h2 class="section-title">Вы недавно смотрели</h2>
+                <p class="muted small" style="margin: 0.25rem 0 0;">Вернитесь к интересным товарам</p>
+            </div>
+            <a href="{% url 'catalog:list' %}" class="link-muted">Весь каталог →</a>
+        </div>
+        <div class="products-grid products-grid--home">
+            {% for product in recently_viewed_products %}
+                {% include "catalog/_product_card.html" with product=product %}
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<section class="section section--products">
+    <div class="container">
+        <div class="section-header">
+            <div>
+                <h2 class="section-title">Популярные товары</h2>
+                <p class="muted small" style="margin: 0.25rem 0 0;">Новинки и самые востребованные позиции</p>
+            </div>
+            <a href="{% url 'catalog:list' %}" class="link-muted">Все товары →</a>
+        </div>
+        <div class="products-grid products-grid--home">
+            {% for product in popular_products %}
+                {% include "catalog/_product_card.html" with product=product %}
+            {% empty %}
+                <p class="muted" style="grid-column: 1/-1;">Пока нет товаров в каталоге. <a href="{% url 'catalog:list' %}">Перейти в каталог</a>.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="section features-section">
+    <div class="container">
+        <div class="section-header" style="justify-content: center; text-align: center;">
+            <div style="margin: 0 auto;">
+                <h2 class="section-title">Почему нас выбирают</h2>
+                <p class="muted small" style="margin: 0.25rem 0 0;">Мы сделали всё для вашего комфорта и безопасности</p>
+            </div>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-card__icon" style="background: rgba(79,70,229,0.12); color: var(--primary);">⚡</div>
+                <h3>Мгновенная доставка</h3>
+                <p>Коды, ключи и доступы приходят на почту и в личный кабинет сразу после оплаты.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-card__icon" style="background: rgba(16,185,129,0.12); color: #059669;">🔒</div>
+                <h3>Безопасные платежи</h3>
+                <p>CSRF, шифрование, защищённые сессии и строгие заголовки безопасности.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-card__icon" style="background: rgba(245,158,11,0.12); color: #d97706;">💬</div>
+                <h3>Поддержка 24/7</h3>
+                <p>Живой чат в углу сайта — решим любые вопросы и поможем с выбором.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-card__icon" style="background: rgba(45,212,191,0.15); color: #0d9488;">♻️</div>
+                <h3>Возврат и гарантия</h3>
+                <p>Если товар не подошёл или не работает — мы вернём деньги или заменим.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="cta-card">
+            <div>
+                <h2 class="cta-card__title">Готовы начать?</h2>
+                <p class="cta-card__subtitle">Создайте аккаунт за 30 секунд и получите доступ к тысячам цифровых товаров.</p>
+            </div>
+            <div class="cta-card__actions">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'catalog:list' %}" class="btn btn-primary">Перейти в каталог</a>
+                {% else %}
+                    <a href="{% url 'accounts:register' %}" class="btn btn-primary">Регистрация</a>
+                    <a href="{% url 'accounts:login' %}" class="btn btn-ghost">Войти</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

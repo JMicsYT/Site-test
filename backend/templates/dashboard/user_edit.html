@@ -1,0 +1,30 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}Редактирование пользователя — ShoShop{% endblock %}
+
+{% block breadcrumb_items %}
+    <span class="sep">/</span> <a href="{% url 'dashboard:users' %}">Пользователи</a>
+    <span class="sep">/</span> <span>{{ user_obj.email }}</span>
+{% endblock %}
+
+{% block content %}
+<h1 class="dashboard-page-title">Редактирование пользователя</h1>
+<p class="muted">Email: {{ user_obj.email }}</p>
+
+<form method="post" class="dashboard-form">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}
+        <label class="field{% if field.field.widget.input_type == 'checkbox' %} field-checkbox{% endif %}">
+            <span>{{ field.label }}</span>
+            {{ field }}
+            {{ field.errors }}
+        </label>
+    {% endfor %}
+    <div class="dashboard-form-actions">
+        <button class="btn btn-primary" type="submit">Сохранить</button>
+        <a href="{% url 'dashboard:users' %}" class="btn btn-ghost">Отмена</a>
+    </div>
+</form>
+{% endblock %}
+

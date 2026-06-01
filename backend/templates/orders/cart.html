@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Корзина — ShoShop{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <nav class="breadcrumb">
+            <a href="{% url 'home' %}">Главная</a>
+            <span class="sep">/</span>
+            <span>Корзина</span>
+        </nav>
+        <h1 style="margin: 0 0 1rem; font-size: 1.5rem; font-weight: 700;">Корзина</h1>
+        {% if not items %}
+            <div class="card" style="text-align: center; padding: 3rem 1rem;">
+                <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">🛒</div>
+                <h2 style="margin: 0 0 0.5rem; font-size: 1.2rem;">Корзина пуста</h2>
+                <p class="muted" style="margin: 0 0 1rem;">Добавьте товары из каталога, чтобы оформить заказ.</p>
+                <a href="{% url 'catalog:list' %}" class="btn btn-primary">Перейти в каталог</a>
+            </div>
+        {% else %}
+            <div class="cart-table-wrap">
+                <table class="cart-table">
+                    <thead>
+                        <tr>
+                            <th>Товар</th>
+                            <th>Кол-во</th>
+                            <th>Сумма</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in items %}
+                            <tr>
+                                <td>
+                                    <div style="display: flex; gap: 0.75rem; align-items: center;">
+                                        {% if row.product.get_first_image_url %}
+                                            <img src="{{ row.product.get_first_image_url }}" alt="{{ row.product.name }}" style="width: 52px; height: 52px; border-radius: 0.5rem; object-fit: cover; flex-shrink: 0;">
+                                        {% else %}
+                                            <div style="width: 52px; height: 52px; border-radius: 0.5rem; background: var(--muted); flex-shrink: 0;"></div>
+                                        {% endif %}
+                                        <div>
+                                            <a href="{% url 'catalog:detail' row.product.slug %}" style="font-weight: 500;">{{ row.product.name }}</a>
+                                            <div class="muted small">{{ row.product.get_product_type_display }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <form method="post" action="{% url 'orders:cart_update' row.product.id %}" class="cart-qty-form">
+                                        {% csrf_token %}
+                                        <input type="number" name="qty" value="{{ row.qty }}" min="1" max="99" class="cart-qty-input">
+                                        <button type="submit" class="btn btn-ghost btn-sm">OK</button>
+                                    </form>
+                                </td>
+                                <td>{{ row.subtotal }} ₽</td>
+                                <td>
+                                    <form method="post" action="{% url 'orders:cart_remove' row.product.id %}" class="cart-remove-form">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-ghost btn-sm cart-remove-btn">Удалить</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="cart-promo">
+                <form method="post" action="{% url 'orders:cart_apply_coupon' %}" class="cart-promo__form">
+                    {% csrf_token %}
+                    <label for="cart-promo-code" class="cart-promo__label">Промокод</label>
+                    <div class="cart-promo__row">
+                        <input type="text" id="cart-promo-code" name="code" value="{{ coupon_code|default:'' }}"
+                               placeholder="Введите промокод" class="cart-promo__input" maxlength="64">
+                        <button type="submit" class="btn btn-outline btn-sm">
+                            {% if coupon %}Обновить{% else %}Применить{% endif %}
+                        </button>
+                        {% if coupon %}
+                        <button type="submit" class="btn btn-ghost btn-sm"
+                                name="code" value="">Снять</button>
+                        {% endif %}
+                    </div>
+                    {% if coupon_error %}
+                        <div class="cart-promo__error">{{ coupon_error }}</div>
+                    {% elif coupon %}
+                        <div class="cart-promo__ok">
+                            Промокод «{{ coupon.code }}» применён. Скидка: −{{ coupon_discount }} ₽
+                        </div>
+                    {% endif %}
+                </form>
+
+                {% if wallet_balance and wallet_balance > 0 %}
+                <form method="post" action="{% url 'orders:cart_toggle_wallet' %}" class="cart-wallet">
+                    {% csrf_token %}
+                    <label class="cart-wallet__label">
+                        <input type="checkbox" name="use" value="1"
+                               {% if use_wallet %}checked{% endif %}
+                               onchange="this.form.submit();">
+                        Использовать баланс ({{ wallet_balance }} ₽)
+                        {% if wallet_apply and wallet_apply > 0 %}
+                            <span class="muted small">— будет списано {{ wallet_apply }} ₽</span>
+                        {% endif %}
+                    </label>
+                </form>
+                {% endif %}
+            </div>
+
+            <div class="cart-summary">
+                <div class="cart-summary__row"><span>Сумма товаров</span><span>{{ total }} ₽</span></div>
+                {% if coupon and coupon_discount %}
+                    <div class="cart-summary__row cart-summary__row--discount">
+                        <span>Скидка по промокоду</span><span>−{{ coupon_discount }} ₽</span>
+                    </div>
+                {% endif %}
+                {% if wallet_apply and wallet_apply > 0 %}
+                    <div class="cart-summary__row cart-summary__row--discount">
+                        <span>Списание с баланса</span><span>−{{ wallet_apply }} ₽</span>
+                    </div>
+                {% endif %}
+                <div class="cart-summary__row cart-summary__row--total">
+                    <span>К оплате</span>
+                    <span class="price price-lg">{{ final_total }} ₽</span>
+                </div>
+                <form method="post" action="{% url 'orders:cart_checkout' %}" class="cart-summary__submit">
+                    {% csrf_token %}
+                    <button class="btn btn-primary btn-lg" type="submit">Оформить заказ</button>
+                </form>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Кошелёк — ShoShop{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container" style="max-width: 980px;">
+        <nav class="breadcrumb">
+            <a href="{% url 'home' %}">Главная</a>
+            <span class="sep">/</span>
+            <a href="{% url 'accounts:dashboard' %}">Кабинет</a>
+            <span class="sep">/</span>
+            <span>Кошелёк</span>
+        </nav>
+
+        <div class="wallet-hero">
+            <div class="wallet-hero__left">
+                <div class="muted small">Доступный баланс</div>
+                <div class="wallet-hero__balance">{{ wallet.balance }} {{ wallet.currency }}</div>
+                <p class="muted">Используйте баланс при оплате любого заказа в корзине.</p>
+            </div>
+            <div class="wallet-hero__stats">
+                <div class="wallet-stat">
+                    <div class="wallet-stat__label">Поступления</div>
+                    <div class="wallet-stat__value wallet-stat__value--in">+{{ income_total }} ₽</div>
+                </div>
+                <div class="wallet-stat">
+                    <div class="wallet-stat__label">Списания</div>
+                    <div class="wallet-stat__value wallet-stat__value--out">−{{ outcome_total }} ₽</div>
+                </div>
+            </div>
+        </div>
+
+        <h2>История операций</h2>
+        {% if transactions %}
+        <table class="table table--bordered">
+            <thead>
+                <tr>
+                    <th>Дата</th>
+                    <th>Тип</th>
+                    <th>Сумма</th>
+                    <th>Остаток</th>
+                    <th>Описание</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in transactions %}
+                <tr>
+                    <td>{{ t.created_at|date:"d.m.Y H:i" }}</td>
+                    <td><span class="chip">{{ t.get_tx_type_display }}</span></td>
+                    <td class="{% if t.amount < 0 %}wallet-neg{% else %}wallet-pos{% endif %}">
+                        {% if t.amount >= 0 %}+{% endif %}{{ t.amount }} ₽
+                    </td>
+                    <td>{{ t.balance_after }} ₽</td>
+                    <td>
+                        {{ t.description }}
+                        {% if t.order_id %}
+                            · <a href="{% url 'accounts:order_list' %}">заказ #{{ t.order_id }}</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if paginator.num_pages > 1 %}
+        <nav class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}">← Назад</a>
+            {% endif %}
+            <span class="pagination-current">Стр. {{ page_obj.number }} из {{ paginator.num_pages }}</span>
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">Вперёд →</a>
+            {% endif %}
+        </nav>
+        {% endif %}
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state__icon" aria-hidden="true">💰</div>
+            <h2 class="empty-state__title">Операций пока нет</h2>
+            <p class="muted">Пополнения появятся здесь после возвратов, бонусов или рефералов.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

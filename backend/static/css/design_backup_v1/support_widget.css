@@ -1,0 +1,175 @@
+/* Виджет поддержки — кружок и панель чата */
+.support-widget {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 45;
+  font-family: var(--font-sans, system-ui, sans-serif);
+}
+
+.support-widget__toggle {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  border: none;
+  background: var(--primary, #4f46e5);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.support-widget__toggle:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.5);
+}
+
+.support-widget__toggle svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.support-widget__panel {
+  position: absolute;
+  bottom: calc(100% + 0.75rem);
+  right: 0;
+  width: 360px;
+  max-width: calc(100vw - 2rem);
+  max-height: 420px;
+  background: var(--card, #fff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: var(--radius, 0.75rem);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Панель чата по умолчанию скрыта, показывается только по клику на кружок */
+.support-widget__panel[hidden] {
+  display: none !important;
+}
+
+.support-widget__header {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  background: var(--muted, #f1f5f9);
+}
+
+.support-widget__close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--muted-foreground);
+  padding: 0 0.25rem;
+}
+
+.support-widget__close:hover {
+  color: var(--foreground);
+}
+
+.support-widget__messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  min-height: 180px;
+  max-height: 280px;
+}
+
+.support-widget__empty,
+.support-widget__loading {
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.support-widget__msg {
+  margin-bottom: 0.75rem;
+}
+
+.support-widget__msg-meta {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  margin-bottom: 0.2rem;
+}
+
+.support-widget__msg-body {
+  font-size: 0.9rem;
+  line-height: 1.45;
+  padding: 0.5rem 0.65rem;
+  border-radius: 0.5rem;
+}
+
+.support-widget__msg--user .support-widget__msg-body {
+  background: var(--primary, #4f46e5);
+  color: #fff;
+  margin-left: 1.5rem;
+}
+
+.support-widget__msg--staff .support-widget__msg-body {
+  background: var(--muted, #f1f5f9);
+  color: var(--foreground);
+  margin-right: 1.5rem;
+}
+
+.support-widget__form-wrap {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--border);
+  background: var(--card);
+}
+
+.support-widget__form textarea {
+  width: 100%;
+  margin-bottom: 0.5rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  font-family: inherit;
+  font-size: 0.9rem;
+  resize: none;
+}
+
+.support-widget__form button[type="submit"] {
+  width: 100%;
+}
+
+.support-widget__status {
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.5rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.85rem;
+}
+
+.support-widget__status--done {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: var(--foreground);
+}
+
+.support-widget__status--done strong {
+  color: #047857;
+  font-size: 0.9rem;
+}
+
+.support-widget__status span {
+  color: var(--muted-foreground);
+  font-size: 0.82rem;
+  line-height: 1.3;
+}
+
+.support-widget__new-ticket {
+  width: 100%;
+  margin-top: 0.25rem;
+}

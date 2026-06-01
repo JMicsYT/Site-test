@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Ссылка недействительна — ShoShop{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container" style="max-width: 560px;">
+        <div class="card" style="text-align:center;">
+            <div style="font-size: 3rem; margin-bottom: var(--space-2);">⚠️</div>
+            <h1 style="margin-top:0;">Ссылка для разблокировки недействительна</h1>
+            <p class="muted">Возможно, вы уже разблокировали аккаунт или срок действия ссылки истёк.</p>
+            <a href="{% url 'accounts:login' %}" class="btn btn-primary">Попробовать войти</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

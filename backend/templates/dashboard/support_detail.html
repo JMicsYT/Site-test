@@ -1,0 +1,51 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}Обращение #{{ ticket.pk }} — ShoShop{% endblock %}
+
+{% block breadcrumb_items %}
+    <span class="sep">/</span> <a href="{% url 'dashboard:support_list' %}">Поддержка</a>
+    <span class="sep">/</span> <span>#{{ ticket.pk }}</span>
+{% endblock %}
+
+{% block content %}
+<h1 class="dashboard-page-title">Обращение #{{ ticket.pk }} — {{ ticket.user.email }}</h1>
+
+<p class="muted">Статус: {{ ticket.get_status_display }}. Создан: {{ ticket.created_at|date:"d.m.Y H:i" }}.</p>
+
+<div class="support-chat-thread" style="max-width: 42rem; margin-bottom: 1.5rem;">
+    {% for m in messages %}
+        <div class="support-msg {% if m.author.is_staff %}support-msg--staff{% else %}support-msg--user{% endif %}">
+            <div class="support-msg__meta">
+                {% if m.author.is_staff %}<strong>Поддержка</strong> ({{ m.author.email }}){% else %}{{ m.author.email }}{% endif %}
+                — {{ m.created_at|date:"d.m.Y H:i" }}
+            </div>
+            <div class="support-msg__body">{{ m.body|linebreaks }}</div>
+        </div>
+    {% empty %}
+        <p class="muted">Сообщений пока нет.</p>
+    {% endfor %}
+</div>
+
+{% if ticket.status == 'open' %}
+<form method="post" class="dashboard-form" style="max-width: 42rem;">
+    {% csrf_token %}
+    <label class="field">
+        <span>Ответ</span>
+        <textarea name="body" rows="4" placeholder="Введите ответ..." required maxlength="5000"></textarea>
+    </label>
+    <div class="dashboard-form-actions">
+        <button type="submit" class="btn btn-primary">Отправить ответ</button>
+    </div>
+</form>
+
+<form method="post" style="margin-top: 1rem;">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="complete">
+    <button type="submit" class="btn btn-outline" onclick="return confirm('Пометить обращение как завершённое? Пользователь не сможет писать в этот чат.');">Завершить обращение</button>
+</form>
+{% else %}
+<p class="muted">Обращение завершено. Новые сообщения добавить нельзя.</p>
+{% endif %}
+
+<p style="margin-top: 1.5rem;"><a href="{% url 'dashboard:support_list' %}">← К списку обращений</a></p>
+{% endblock %}

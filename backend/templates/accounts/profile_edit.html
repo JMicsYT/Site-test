@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Редактирование профиля — ShoShop{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <nav class="breadcrumb">
+            <a href="{% url 'home' %}">Главная</a>
+            <span class="sep">/</span>
+            <a href="{% url 'accounts:dashboard' %}">Личный кабинет</a>
+            <span class="sep">/</span>
+            <span>Профиль</span>
+        </nav>
+    </div>
+    <div class="container dashboard-layout">
+        <aside class="dashboard-sidebar">
+            <h2>Навигация</h2>
+            <ul>
+                <li><a href="{% url 'accounts:dashboard' %}">Обзор</a></li>
+                <li><a href="{% url 'accounts:profile_edit' %}" class="active">Профиль</a></li>
+                <li><a href="{% url 'accounts:order_list' %}">Мои заказы</a></li>
+                <li><a href="{% url 'accounts:password_change' %}">Безопасность</a></li>
+                <li><a href="{% url 'accounts:logout' %}" onclick="return confirm('Выйти из аккаунта?');">Выйти</a></li>
+            </ul>
+        </aside>
+
+        <div class="dashboard-content">
+            <div class="card" style="margin-bottom: var(--space-5);">
+                <h1 style="margin-top:0; font-size: 1.4rem;">Аватар</h1>
+                <div style="display: flex; gap: var(--space-5); align-items: center; flex-wrap: wrap;">
+                    <div class="profile-avatar profile-avatar--lg">
+                        {% if user.avatar %}
+                            <img src="{{ user.avatar.url }}" alt="{{ user.full_name }}">
+                        {% else %}
+                            {{ user.initials }}
+                        {% endif %}
+                    </div>
+                    <form method="post" enctype="multipart/form-data" style="flex: 1; min-width: 18rem;">
+                        {% csrf_token %}
+                        <input type="hidden" name="form" value="avatar">
+                        <div class="field">
+                            <span>Загрузите новое изображение (JPG/PNG, до 3 МБ)</span>
+                            {{ avatar_form.avatar }}
+                            {{ avatar_form.avatar.errors }}
+                        </div>
+                        <div style="display: flex; gap: var(--space-2); flex-wrap: wrap;">
+                            <button type="submit" class="btn btn-primary btn-sm">Сохранить аватар</button>
+                            {% if user.avatar %}
+                            <button type="submit" name="remove_avatar" value="1" class="btn btn-ghost btn-sm"
+                                onclick="return confirm('Удалить текущий аватар?');">Удалить аватар</button>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <h1 style="margin-top:0; font-size: 1.4rem;">Личные данные</h1>
+                <form method="post">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-warning">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <div class="profile-form-grid">
+                        <div class="field">
+                            <label for="{{ form.first_name.id_for_label }}">Имя</label>
+                            {{ form.first_name }}
+                            {{ form.first_name.errors }}
+                        </div>
+                        <div class="field">
+                            <label for="{{ form.last_name.id_for_label }}">Фамилия</label>
+                            {{ form.last_name }}
+                            {{ form.last_name.errors }}
+                        </div>
+                        <div class="field">
+                            <label for="{{ form.phone.id_for_label }}">Телефон</label>
+                            {{ form.phone }}
+                            {{ form.phone.errors }}
+                        </div>
+                        <div class="field">
+                            <label for="{{ form.telegram.id_for_label }}">Telegram</label>
+                            {{ form.telegram }}
+                            {{ form.telegram.errors }}
+                        </div>
+                        <div class="field">
+                            <label for="{{ form.birth_date.id_for_label }}">Дата рождения</label>
+                            {{ form.birth_date }}
+                            {{ form.birth_date.errors }}
+                        </div>
+                        <div class="field">
+                            <label for="{{ form.country.id_for_label }}">Страна</label>
+                            {{ form.country }}
+                            {{ form.country.errors }}
+                        </div>
+                        <div class="field">
+                            <label for="{{ form.city.id_for_label }}">Город</label>
+                            {{ form.city }}
+                            {{ form.city.errors }}
+                        </div>
+                        <div class="field field--full">
+                            <label for="{{ form.address.id_for_label }}">Адрес</label>
+                            {{ form.address }}
+                            {{ form.address.errors }}
+                        </div>
+                        <div class="field field--full">
+                            <label for="{{ form.bio.id_for_label }}">О себе</label>
+                            {{ form.bio }}
+                            {{ form.bio.errors }}
+                            <small class="muted">До 500 символов</small>
+                        </div>
+                        <div class="field field--full">
+                            <label class="checkbox-row">
+                                {{ form.newsletter }}
+                                <span>Подписаться на рассылку новостей и акций</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: var(--space-2); margin-top: var(--space-4);">
+                        <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                        <a href="{% url 'accounts:dashboard' %}" class="btn btn-ghost">Отмена</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

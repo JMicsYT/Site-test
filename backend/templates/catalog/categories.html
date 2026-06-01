@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Категории — ShoShop{% endblock %}
+{% block meta %}
+<meta name="description" content="Все категории цифровых товаров ShoShop: игры, ПО, курсы, медиа и другие направления.">
+{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <nav class="breadcrumb">
+            <a href="{% url 'home' %}">Главная</a>
+            <span class="sep">/</span>
+            <span>Категории</span>
+        </nav>
+        <div class="catalog-header" style="margin-bottom: var(--space-6);">
+            <h1>Категории</h1>
+            <p class="muted">Выберите интересующее направление — мы собрали лучшие товары в каждой категории.</p>
+        </div>
+
+        <div class="category-grid">
+            {% for cat in categories %}
+            <a href="{% url 'catalog:list' %}?category={{ cat.slug }}"
+               class="category-card"
+               style="--cat-color: {{ cat.color|default:'#4f46e5' }};">
+                <div class="category-card__icon">
+                    {% if cat.image_url %}
+                        <img src="{{ cat.image_url }}" alt="{{ cat.name }}">
+                    {% elif cat.icon %}
+                        <span>{{ cat.icon }}</span>
+                    {% else %}
+                        <span>{{ cat.name|first|upper }}</span>
+                    {% endif %}
+                </div>
+                <div class="category-card__body">
+                    <h3 class="category-card__title">{{ cat.name }}</h3>
+                    {% if cat.description %}
+                        <p class="category-card__desc">{{ cat.description|truncatechars:80 }}</p>
+                    {% endif %}
+                    <span class="category-card__count">
+                        {{ cat.product_count }} товар{{ cat.product_count|pluralize:",а,ов" }}
+                    </span>
+                </div>
+                <span class="category-card__arrow" aria-hidden="true">→</span>
+            </a>
+            {% empty %}
+                <p class="muted" style="grid-column: 1/-1;">Категорий пока нет.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

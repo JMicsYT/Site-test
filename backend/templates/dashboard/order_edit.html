@@ -1,0 +1,51 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}Изменить статус заказа #{{ order.id }} — ShoShop{% endblock %}
+
+{% block breadcrumb_items %}
+    <span class="sep">/</span> <a href="{% url 'dashboard:orders' %}">Заказы</a>
+    <span class="sep">/</span> <a href="{% url 'dashboard:order_detail' order.id %}">#{{ order.id }}</a>
+    <span class="sep">/</span> <span>Изменить статус</span>
+{% endblock %}
+
+{% block content %}
+<h1 class="dashboard-page-title">Изменить статус заказа #{{ order.id }}</h1>
+<p class="muted">Пользователь: {{ order.user.email }} | Сумма: {{ order.amount }} {{ order.currency }}</p>
+
+<form method="post" class="dashboard-form">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}
+        <label class="field">
+            <span>{{ field.label }}</span>
+            {{ field }}
+            {{ field.errors }}
+        </label>
+    {% endfor %}
+    <div class="dashboard-form-actions">
+        <button class="btn btn-primary" type="submit">Сохранить</button>
+        <a href="{% url 'dashboard:order_detail' order.id %}" class="btn btn-ghost">Отмена</a>
+        <a href="{% url 'dashboard:orders' %}" class="btn btn-ghost">К списку заказов</a>
+    </div>
+</form>
+
+<div class="settings-section" style="margin-top: 1.5rem;">
+    <h2>Позиции заказа</h2>
+    <div class="dashboard-table-wrap">
+        <table class="dashboard-table">
+            <thead><tr><th>Товар</th><th>Цена</th><th>Кол-во</th><th>Сумма</th></tr></thead>
+            <tbody>
+                {% for item in order.items.all %}
+                    <tr>
+                        <td>{{ item.product.name }}</td>
+                        <td>{{ item.price }} ₽</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ item.subtotal }} ₽</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

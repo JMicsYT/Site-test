@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Вход — ShoShop{% endblock %}
+
+{% block content %}
+<section class="section auth-section">
+    <div class="container auth-container">
+        <div class="auth-card">
+            <div style="text-align: center; margin-bottom: 1.25rem;">
+                <div style="width: 3rem; height: 3rem; margin: 0 auto 0.75rem; border-radius: 0.75rem; background: linear-gradient(135deg, var(--primary), #8b5cf6); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 8px 24px rgba(79,70,229,0.3);">🔐</div>
+                <h1 style="margin: 0;">С возвращением!</h1>
+                <p class="muted" style="margin: 0.25rem 0 0; font-size: 0.9rem;">Войдите в аккаунт, чтобы продолжить</p>
+            </div>
+            <form method="post" action="{% url 'accounts:login' %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}">
+                {% csrf_token %}
+                {% if form.non_field_errors %}<div class="alert alert-warning">{{ form.non_field_errors }}</div>{% endif %}
+                <label class="field">
+                    <span>Email</span>
+                    {{ form.email }}
+                    {{ form.email.errors }}
+                </label>
+                <label class="field">
+                    <span>Пароль</span>
+                    {{ form.password }}
+                    {{ form.password.errors }}
+                </label>
+                <button class="btn btn-primary btn-block" type="submit">Войти</button>
+            </form>
+            <p class="muted small">
+                Забыли пароль? <a href="{% url 'accounts:password_reset' %}">Сбросить</a>
+            </p>
+            <p class="muted small">
+                Нет аккаунта? <a href="{% url 'accounts:register' %}">Зарегистрироваться</a>
+            </p>
+        </div>
+    </div>
+</section>
+{% endblock %}
+

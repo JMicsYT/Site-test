@@ -1,0 +1,100 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}{% if product %}Редактирование товара{% else %}Новый товар{% endif %} — ShoShop{% endblock %}
+
+{% block breadcrumb_items %}
+    <span class="sep">/</span> <a href="{% url 'dashboard:products' %}">Товары</a>
+    <span class="sep">/</span> <span>{% if product %}{{ product.name }}{% else %}Новый{% endif %}</span>
+{% endblock %}
+
+{% block content %}
+<h1 class="dashboard-page-title">{% if product %}Редактирование товара{% else %}Новый товар{% endif %}</h1>
+
+<form method="post" class="dashboard-form">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}
+        <label class="field{% if field.field.widget.input_type == 'checkbox' %} field-checkbox{% endif %}">
+            <span>{{ field.label }}</span>
+            {{ field }}
+            {{ field.errors }}
+        </label>
+    {% endfor %}
+    <div class="dashboard-form-actions">
+        <button class="btn btn-primary" type="submit">Сохранить</button>
+        <a href="{% url 'dashboard:products' %}" class="btn btn-ghost">Отмена</a>
+        {% if product %}
+            <button type="submit" name="delete_product" value="1" class="btn btn-danger" onclick="return confirm('Удалить товар «{{ product.name }}»?');">Удалить товар</button>
+        {% endif %}
+    </div>
+</form>
+
+        {% if product %}
+            <div class="settings-section">
+            <h2>Цифровые элементы</h2>
+            <div class="dashboard-table-wrap">
+                <table class="dashboard-table">
+                <thead><tr>
+                    <th>Тип</th>
+                    <th>Значение</th>
+                    <th>Статус</th>
+                    <th></th>
+                </tr></thead>
+                <tbody>
+                {% for d in product.digital_items.all %}
+                    <tr>
+                        <td>{{ d.get_item_type_display }}</td>
+                        <td>{{ d.value|truncatechars:40 }}</td>
+                        <td>{{ d.get_status_display }}</td>
+                        <td>
+                            <form method="post" action="{% url 'dashboard:product_delete_digital' product.pk d.pk %}" style="display:inline;" onsubmit="return confirm('Удалить этот цифровой элемент?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="4" class="muted">Нет цифровых элементов.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            </div>
+            <form method="post" class="dash-inline-form">
+                {% csrf_token %}
+                <input type="hidden" name="add_digital" value="1">
+                {{ digital_form.as_p }}
+                <button class="btn btn-primary btn-sm" type="submit">Добавить элемент</button>
+            </form>
+
+            <h2>Медиа (изображения/видео)</h2>
+            <div class="dashboard-table-wrap">
+                <table class="dashboard-table">
+                <thead><tr><th>Тип</th><th>URL</th><th>Порядок</th><th></th></tr></thead>
+                <tbody>
+                {% for m in product.media.all %}
+                    <tr>
+                        <td>{{ m.get_media_type_display }}</td>
+                        <td><a href="{{ m.url }}" target="_blank">{{ m.url|truncatechars:40 }}</a></td>
+                        <td>{{ m.sort_order }}</td>
+                        <td>
+                            <form method="post" action="{% url 'dashboard:product_delete_media' product.pk m.pk %}" style="display:inline;" onsubmit="return confirm('Удалить это медиа?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="4" class="muted">Медиа нет.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            </div>
+            <form method="post" class="dash-inline-form">
+                {% csrf_token %}
+                <input type="hidden" name="add_media" value="1">
+                {{ media_form.as_p }}
+                <button class="btn btn-primary btn-sm" type="submit">Добавить медиа</button>
+            </form>
+            </div>
+        {% endif %}
+{% endblock %}

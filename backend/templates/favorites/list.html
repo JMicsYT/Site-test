@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Избранное — ShoShop{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <div>
+                <h1 class="section-title">Избранные товары</h1>
+                <p class="muted small" style="margin: 0.25rem 0 0;">Всего: {{ total }}</p>
+            </div>
+            <a href="{% url 'catalog:list' %}" class="link-muted">В каталог →</a>
+        </div>
+
+        {% if products %}
+            <div class="products-grid">
+                {% for product in products %}
+                    {% include "catalog/_product_card.html" with product=product %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state__icon" aria-hidden="true">♥</div>
+                <h2 class="empty-state__title">Избранное пусто</h2>
+                <p class="muted">Добавляйте товары в избранное, нажимая на сердечко на карточке.</p>
+                <a href="{% url 'catalog:list' %}" class="btn btn-primary" style="margin-top: var(--space-3);">Перейти в каталог</a>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

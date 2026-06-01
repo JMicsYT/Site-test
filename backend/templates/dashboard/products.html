@@ -1,0 +1,78 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}Товары — админка ShoShop{% endblock %}
+
+{% block breadcrumb_items %}
+    <span class="sep">/</span> <span>Товары</span>
+{% endblock %}
+
+{% block content %}
+<h1 class="dashboard-page-title">Товары</h1>
+
+<div class="dashboard-toolbar">
+    <a href="{% url 'dashboard:product_new' %}" class="btn btn-primary">+ Новый товар</a>
+    <form method="get" style="display: flex; gap: 0.5rem; align-items: flex-end;">
+        <label class="field">
+            <span>Поиск</span>
+            <input type="search" name="q" value="{{ q }}" placeholder="Название...">
+        </label>
+        <label class="field">
+            <span>Статус</span>
+            <select name="status" onchange="this.form.submit()">
+                <option value="">Все</option>
+                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Активен</option>
+                <option value="hidden" {% if status_filter == 'hidden' %}selected{% endif %}>Скрыт</option>
+                <option value="disabled" {% if status_filter == 'disabled' %}selected{% endif %}>Отключен</option>
+            </select>
+        </label>
+        <button type="submit" class="btn btn-ghost btn-sm">Найти</button>
+    </form>
+</div>
+
+<div class="dashboard-table-wrap">
+    <table class="dashboard-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Название</th>
+                <th>Категория</th>
+                <th>Цена</th>
+                <th>Статус</th>
+                <th class="actions">Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in products %}
+                <tr>
+                    <td>{{ p.id }}</td>
+                    <td><a href="{% url 'dashboard:product_edit' p.id %}">{{ p.name }}</a></td>
+                    <td>{{ p.category.name }}</td>
+                    <td>{{ p.price }} ₽</td>
+                    <td>{{ p.get_status_display }}</td>
+                    <td class="actions">
+                        <a href="{% url 'dashboard:product_edit' p.id %}" class="btn btn-ghost btn-sm">Изменить</a>
+                        <form method="post" action="{% url 'dashboard:product_delete' p.id %}" style="display:inline;" onsubmit="return confirm('Удалить товар «{{ p.name }}»?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
+                        </form>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="6" class="muted">Товаров не найдено.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if paginator.num_pages > 1 %}
+<nav class="pagination">
+    {% if products.has_previous %}
+        <a href="?page={{ products.previous_page_number }}{% if q %}&q={{ q|urlencode }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">←</a>
+    {% endif %}
+    <span class="current">Стр. {{ products.number }} из {{ paginator.num_pages }}</span>
+    {% if products.has_next %}
+        <a href="?page={{ products.next_page_number }}{% if q %}&q={{ q|urlencode }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">→</a>
+    {% endif %}
+</nav>
+{% endif %}
+{% endblock %}

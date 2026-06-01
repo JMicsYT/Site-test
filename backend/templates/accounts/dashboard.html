@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Личный кабинет — ShoShop{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <nav class="breadcrumb">
+            <a href="{% url 'home' %}">Главная</a>
+            <span class="sep">/</span>
+            <span>Личный кабинет</span>
+        </nav>
+    </div>
+    <div class="container dashboard-layout">
+        <aside class="dashboard-sidebar">
+            <h2>Навигация</h2>
+            <ul>
+                <li><a href="{% url 'accounts:dashboard' %}" class="active">Обзор</a></li>
+                <li><a href="{% url 'accounts:profile_edit' %}">Профиль</a></li>
+                <li><a href="{% url 'accounts:order_list' %}">Мои заказы</a></li>
+                <li><a href="{% url 'favorites:list' %}">Избранное</a></li>
+                <li><a href="{% url 'wallet_index' %}">Кошелёк</a></li>
+                <li><a href="{% url 'accounts:referral' %}">Пригласить друга</a></li>
+                <li><a href="{% url 'accounts:password_change' %}">Безопасность</a></li>
+                <li><a href="{% url 'accounts:logout' %}" onclick="return confirm('Выйти из аккаунта?');">Выйти</a></li>
+            </ul>
+        </aside>
+
+        <div class="dashboard-content">
+            {% if not user.email_verified %}
+            <div class="alert alert-warning" role="alert">
+                <strong>Подтвердите email.</strong> Для оформления заказов нужно подтвердить адрес почты.
+                <form method="post" action="{% url 'accounts:resend_verify_email' %}" style="display:inline; margin-left: 0.5rem;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline btn-sm">Отправить письмо повторно</button>
+                </form>
+            </div>
+            {% endif %}
+
+            <section class="profile-hero">
+                <div class="profile-hero__row">
+                    <div class="profile-avatar">
+                        {% if user.avatar %}
+                            <img src="{{ user.avatar.url }}" alt="{{ user.full_name }}">
+                        {% else %}
+                            {{ user.initials }}
+                        {% endif %}
+                    </div>
+                    <div class="profile-hero__info">
+                        <h1 class="profile-hero__name">
+                            {{ user.full_name }}
+                            {% if user.email_verified %}
+                                <span class="profile-badge" title="Email подтверждён">✓ Подтверждён</span>
+                            {% else %}
+                                <span class="profile-badge profile-badge--warn" title="Email не подтверждён">Не подтверждён</span>
+                            {% endif %}
+                        </h1>
+                        <div class="profile-hero__email">{{ user.email }}{% if user.city %} · {{ user.city }}{% endif %}</div>
+                        <div class="profile-hero__actions">
+                            <a href="{% url 'accounts:profile_edit' %}" class="btn btn-primary btn-sm">Редактировать профиль</a>
+                            <a href="{% url 'accounts:password_change' %}" class="btn btn-outline btn-sm">Сменить пароль</a>
+                            {% if user.totp_enabled %}
+                                <a href="{% url 'accounts:twofa_disable' %}" class="btn btn-ghost btn-sm" title="Двухфакторная аутентификация включена">
+                                    🛡 2FA включена
+                                </a>
+                            {% else %}
+                                <a href="{% url 'accounts:twofa_setup' %}" class="btn btn-outline btn-sm">Включить 2FA</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-card__icon stat-card__icon--primary">🛍️</div>
+                    <p class="stat-card__value">{{ stats.orders_total }}</p>
+                    <div class="stat-card__label">Заказов всего</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card__icon stat-card__icon--success">✓</div>
+                    <p class="stat-card__value">{{ stats.orders_paid }}</p>
+                    <div class="stat-card__label">Оплачено</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card__icon stat-card__icon--accent">💎</div>
+                    <p class="stat-card__value">{{ stats.access_total }}</p>
+                    <div class="stat-card__label">Цифровых активов</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card__icon stat-card__icon--warn">₽</div>
+                    <p class="stat-card__value">{{ stats.spent_total|floatformat:0 }}</p>
+                    <div class="stat-card__label">Потрачено, ₽</div>
+                </div>
+            </section>
+
+            <section id="orders" class="dash-section">
+                <div class="section-header" style="margin-bottom: var(--space-3);">
+                    <h3 style="margin:0; font-size: 1.1rem;">Последние заказы</h3>
+                    <a href="{% url 'accounts:order_list' %}" class="link-muted">Все заказы →</a>
+                </div>
+                {% if orders %}
+                <div class="table table--orders">
+                    <div class="table-row table-header">
+                        <div>№</div>
+                        <div>Статус</div>
+                        <div>Сумма</div>
+                        <div>Дата</div>
+                        <div>Действия</div>
+                    </div>
+                    {% for o in orders %}
+                        <div class="table-row">
+                            <div>#{{ o.id }}</div>
+                            <div>
+                                <span class="order-status order-status--{{ o.status }}">{{ o.get_status_display }}</span>
+                            </div>
+                            <div>{{ o.amount }} {{ o.currency }}</div>
+                            <div>{{ o.created_at|date:"d.m.Y H:i" }}</div>
+                            <div class="order-actions">
+                                {% if o.status == 'created' or o.status == 'pending_payment' %}
+                                    <form method="post" action="{% url 'orders:pay' o.id %}" style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-primary btn-sm">Оплатить</button>
+                                    </form>
+                                    <form method="post" action="{% url 'orders:cancel' o.id %}" style="display:inline;" onsubmit="return confirm('Отменить заказ #{{ o.id }}?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-ghost btn-sm">Отменить</button>
+                                    </form>
+                                {% else %}
+                                    <span class="muted">—</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                    <p class="muted">Заказов пока нет. <a href="{% url 'catalog:list' %}">Перейти в каталог →</a></p>
+                {% endif %}
+            </section>
+
+            <section id="digital" class="dash-section">
+                <div class="section-header" style="margin-bottom: var(--space-3);">
+                    <h3 style="margin:0; font-size: 1.1rem;">Купленные цифровые товары</h3>
+                </div>
+                {% if not accesses %}
+                    <p class="muted">У вас пока нет купленных цифровых товаров.</p>
+                {% else %}
+                    <div class="table table--orders">
+                        <div class="table-row table-header">
+                            <div>Товар</div>
+                            <div>Тип</div>
+                            <div>Дата покупки</div>
+                            <div>Действия</div>
+                        </div>
+                        {% for a in accesses %}
+                            <div class="table-row">
+                                <div>{{ a.product.name }}</div>
+                                <div>
+                                    {% if a.digital_item %}
+                                        {{ a.digital_item.get_item_type_display }}
+                                    {% else %}
+                                        Доступ
+                                    {% endif %}
+                                </div>
+                                <div>{{ a.purchased_at|date:"d.m.Y H:i" }}</div>
+                                <div class="order-actions">
+                                    {% if a.digital_item %}
+                                    <form method="post" action="{% url 'orders:digital_link' a.id %}" style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-primary btn-sm" title="Сгенерировать одноразовую защищённую ссылку">
+                                            Получить значение
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                        <span class="muted">—</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <p class="muted" style="margin-top: var(--space-2); font-size: 0.85rem;">
+                        <strong>🛡 Как это работает:</strong> мы не храним цифровые значения в открытом виде
+                        и не показываем их на списке. По нажатию «Получить значение» создаётся одноразовая
+                        подписанная ссылка с ограниченным сроком действия и лимитом использований —
+                        каждое обращение фиксируется в журнале.
+                    </p>
+                {% endif %}
+            </section>
+        </div>
+    </div>
+</section>
+{% endblock %}

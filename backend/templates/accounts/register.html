@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Регистрация — ShoShop{% endblock %}
+
+{% block content %}
+<section class="section auth-section">
+    <div class="container auth-container">
+        <div class="auth-card">
+            <div style="text-align: center; margin-bottom: 1.25rem;">
+                <div style="width: 3rem; height: 3rem; margin: 0 auto 0.75rem; border-radius: 0.75rem; background: linear-gradient(135deg, var(--primary), #8b5cf6); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 8px 24px rgba(79,70,229,0.3);">✨</div>
+                <h1 style="margin: 0;">Создайте аккаунт</h1>
+                <p class="muted" style="margin: 0.25rem 0 0; font-size: 0.9rem;">30 секунд — и вы с нами</p>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                {% if form.non_field_errors %}<div class="alert alert-warning">{{ form.non_field_errors }}</div>{% endif %}
+                <label class="field">
+                    <span>Email</span>
+                    {{ form.email }}
+                    {{ form.email.errors }}
+                </label>
+                <label class="field">
+                    <span>Имя</span>
+                    {{ form.first_name }}
+                    {{ form.first_name.errors }}
+                </label>
+                <label class="field">
+                    <span>Фамилия</span>
+                    {{ form.last_name }}
+                    {{ form.last_name.errors }}
+                </label>
+                <label class="field">
+                    <span>Пароль</span>
+                    {{ form.password }}
+                    {{ form.password.errors }}
+                </label>
+                <label class="field">
+                    <span>Повторите пароль</span>
+                    {{ form.password_confirm }}
+                    {{ form.password_confirm.errors }}
+                </label>
+                <label class="field">
+                    <span>{{ form.captcha_answer.label }}</span>
+                    {{ form.captcha_answer }}
+                    {{ form.captcha_answer.errors }}
+                </label>
+                {{ form.captcha_token }}
+                <button class="btn btn-primary btn-block" type="submit">Создать аккаунт</button>
+            </form>
+            <p class="muted small">
+                Уже есть аккаунт? <a href="{% url 'accounts:login' %}">Войти</a>
+            </p>
+        </div>
+    </div>
+</section>
+{% endblock %}
+

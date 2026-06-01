@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Каталог — ShoShop{% endblock %}
+{% block meta %}
+<meta name="description" content="Каталог цифровых товаров ShoShop: игры, ключи, программы, курсы. Фильтры по категориям и типу товара.">
+<meta name="keywords" content="каталог, цифровые товары, игры, ключи, курсы, ShoShop">
+{% endblock %}
+
+{% block content %}
+<section class="section section--catalog">
+    <div class="container">
+        <nav class="breadcrumb">
+            <a href="{% url 'home' %}">Главная</a>
+            <span class="sep">/</span>
+            <span>Каталог</span>
+        </nav>
+    </div>
+    <div class="container catalog-layout">
+        <aside class="catalog-filters">
+            <div class="catalog-filters__head">
+                <h2>Фильтры</h2>
+                <a href="{% url 'catalog:list' %}" class="link-muted small">Сбросить</a>
+            </div>
+            <form method="get" id="filters-form" data-filters-form>
+                <label class="field">
+                    <span>Поиск</span>
+                    <input type="search" name="q" value="{{ request.GET.q }}" placeholder="Название или ключевые слова">
+                </label>
+                <label class="field">
+                    <span>Категория</span>
+                    <select name="category">
+                        <option value="">Все</option>
+                        {% for cat in categories %}
+                            <option value="{{ cat.slug }}" {% if request.GET.category == cat.slug %}selected{% endif %}>{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label class="field">
+                    <span>Тип товара</span>
+                    <select name="type">
+                        <option value="">Любой</option>
+                        <option value="game" {% if request.GET.type == 'game' %}selected{% endif %}>Игра</option>
+                        <option value="software" {% if request.GET.type == 'software' %}selected{% endif %}>ПО</option>
+                        <option value="course" {% if request.GET.type == 'course' %}selected{% endif %}>Курс</option>
+                        <option value="media" {% if request.GET.type == 'media' %}selected{% endif %}>Медиа</option>
+                        <option value="asset" {% if request.GET.type == 'asset' %}selected{% endif %}>Asset</option>
+                    </select>
+                </label>
+                <label class="field">
+                    <span>Назначение</span>
+                    <select name="purpose">
+                        <option value="">Любое</option>
+                        <option value="personal" {% if request.GET.purpose == 'personal' %}selected{% endif %}>Личное</option>
+                        <option value="business" {% if request.GET.purpose == 'business' %}selected{% endif %}>Бизнес</option>
+                    </select>
+                </label>
+                <label class="field">
+                    <span>Тип лицензии</span>
+                    <select name="license">
+                        <option value="">Любая</option>
+                        <option value="perpetual" {% if request.GET.license == 'perpetual' %}selected{% endif %}>Бессрочная</option>
+                        <option value="subscription" {% if request.GET.license == 'subscription' %}selected{% endif %}>Подписка</option>
+                    </select>
+                </label>
+
+                <fieldset class="field field--range">
+                    <legend>Цена, ₽</legend>
+                    <div class="range-values">
+                        <input type="number" name="min_price" value="{{ cur_min_price }}"
+                               min="{{ price_min }}" max="{{ price_max }}" step="1"
+                               class="range-input" data-range-min>
+                        <span>—</span>
+                        <input type="number" name="max_price" value="{{ cur_max_price }}"
+                               min="{{ price_min }}" max="{{ price_max }}" step="1"
+                               class="range-input" data-range-max>
+                    </div>
+                </fieldset>
+
+                <fieldset class="field field--checks">
+                    <legend>Только</legend>
+                    <label class="checkbox">
+                        <input type="checkbox" name="discount" value="1" {% if cur_only_discount %}checked{% endif %}>
+                        со скидкой
+                    </label>
+                    <label class="checkbox">
+                        <input type="checkbox" name="new" value="1" {% if cur_only_new %}checked{% endif %}>
+                        новинки (14 дней)
+                    </label>
+                </fieldset>
+
+                <label class="field">
+                    <span>Минимальный рейтинг</span>
+                    <select name="rating">
+                        <option value="" {% if not cur_min_rating %}selected{% endif %}>Любой</option>
+                        <option value="5" {% if cur_min_rating == "5" %}selected{% endif %}>★★★★★</option>
+                        <option value="4" {% if cur_min_rating == "4" %}selected{% endif %}>от ★★★★</option>
+                        <option value="3" {% if cur_min_rating == "3" %}selected{% endif %}>от ★★★</option>
+                    </select>
+                </label>
+
+                <label class="field">
+                    <span>Сортировка</span>
+                    <select name="ordering">
+                        <option value="-created_at" {% if request.GET.ordering == '-created_at' or not request.GET.ordering %}selected{% endif %}>Сначала новые</option>
+                        <option value="created_at" {% if request.GET.ordering == 'created_at' %}selected{% endif %}>Сначала старые</option>
+                        <option value="price" {% if request.GET.ordering == 'price' %}selected{% endif %}>Цена ↑</option>
+                        <option value="-price" {% if request.GET.ordering == '-price' %}selected{% endif %}>Цена ↓</option>
+                        <option value="rating" {% if request.GET.ordering == 'rating' %}selected{% endif %}>По рейтингу</option>
+                        <option value="popular" {% if request.GET.ordering == 'popular' %}selected{% endif %}>Популярные</option>
+                    </select>
+                </label>
+
+                <button class="btn btn-primary btn-block" type="submit">Применить</button>
+            </form>
+        </aside>
+
+        <div class="catalog-content" data-grid-root>
+            <div class="catalog-header">
+                <h1>Каталог</h1>
+                <p class="muted">
+                    Найдено товаров: <strong data-total-count>{{ paginator.count }}</strong>
+                    {% if request.GET.q %} · по запросу «{{ request.GET.q }}»{% endif %}
+                </p>
+            </div>
+            <div data-grid-container>
+                {% include "catalog/_grid_partial.html" %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

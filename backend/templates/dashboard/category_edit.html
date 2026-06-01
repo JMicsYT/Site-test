@@ -1,0 +1,32 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}{% if category %}Редактирование категории{% else %}Новая категория{% endif %} — ShoShop{% endblock %}
+
+{% block breadcrumb_items %}
+    <span class="sep">/</span> <a href="{% url 'dashboard:categories' %}">Категории</a>
+    <span class="sep">/</span> <span>{% if category %}{{ category.name }}{% else %}Новая{% endif %}</span>
+{% endblock %}
+
+{% block content %}
+<h1 class="dashboard-page-title">{% if category %}Редактирование категории{% else %}Новая категория{% endif %}</h1>
+
+<form method="post" class="dashboard-form">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}
+        <label class="field">
+            <span>{{ field.label }}</span>
+            {{ field }}
+            {{ field.errors }}
+        </label>
+    {% endfor %}
+    <div class="dashboard-form-actions">
+        <button class="btn btn-primary" type="submit">Сохранить</button>
+        <a href="{% url 'dashboard:categories' %}" class="btn btn-ghost">Отмена</a>
+        {% if category %}
+            <button type="submit" name="delete" value="1" class="btn btn-danger" onclick="return confirm('Удалить категорию «{{ category.name }}»? Товары с этой категорией не будут удалены.');">Удалить категорию</button>
+        {% endif %}
+    </div>
+</form>
+{% endblock %}
+

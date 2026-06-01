@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Мои заказы — ShoShop{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <nav class="breadcrumb">
+            <a href="{% url 'home' %}">Главная</a>
+            <span class="sep">/</span>
+            <a href="{% url 'accounts:dashboard' %}">Личный кабинет</a>
+            <span class="sep">/</span>
+            <span>Мои заказы</span>
+        </nav>
+    </div>
+    <div class="container dashboard-layout">
+        <aside class="dashboard-sidebar">
+            <h2>Навигация</h2>
+            <ul>
+                <li><a href="{% url 'accounts:dashboard' %}">Обзор</a></li>
+                <li><a href="{% url 'accounts:profile_edit' %}">Профиль</a></li>
+                <li><a href="{% url 'accounts:order_list' %}" class="active">Мои заказы</a></li>
+                <li><a href="{% url 'accounts:password_change' %}">Безопасность</a></li>
+                <li><a href="{% url 'accounts:logout' %}" onclick="return confirm('Выйти из аккаунта?');">Выйти</a></li>
+            </ul>
+        </aside>
+        <div class="dashboard-content">
+            <div class="card">
+                <h1 style="margin-top:0; font-size: 1.4rem;">Мои заказы</h1>
+                {% if orders %}
+                <div class="table table--orders">
+                    <div class="table-row table-header">
+                        <div>№</div>
+                        <div>Статус</div>
+                        <div>Сумма</div>
+                        <div>Дата</div>
+                        <div>Действия</div>
+                    </div>
+                    {% for o in orders %}
+                        <div class="table-row">
+                            <div>#{{ o.id }}</div>
+                            <div>
+                                <span class="order-status order-status--{{ o.status }}">{{ o.get_status_display }}</span>
+                            </div>
+                            <div>{{ o.amount }} {{ o.currency }}</div>
+                            <div>{{ o.created_at|date:"d.m.Y H:i" }}</div>
+                            <div class="order-actions">
+                                {% if o.status == 'created' or o.status == 'pending_payment' %}
+                                    <form method="post" action="{% url 'orders:pay' o.id %}" style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-primary btn-sm">Оплатить</button>
+                                    </form>
+                                    <form method="post" action="{% url 'orders:cancel' o.id %}" style="display:inline;" onsubmit="return confirm('Отменить заказ #{{ o.id }}?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-ghost btn-sm">Отменить</button>
+                                    </form>
+                                {% else %}
+                                    <span class="muted">—</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                    <div style="text-align: center; padding: 2rem 0;">
+                        <div style="font-size: 3rem; margin-bottom: 0.5rem;">📦</div>
+                        <p class="muted">У вас пока нет заказов.</p>
+                        <a href="{% url 'catalog:list' %}" class="btn btn-primary">Перейти в каталог</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Пригласи друга — ShoShop{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container" style="max-width: 900px;">
+        <nav class="breadcrumb">
+            <a href="{% url 'home' %}">Главная</a>
+            <span class="sep">/</span>
+            <a href="{% url 'accounts:dashboard' %}">Кабинет</a>
+            <span class="sep">/</span>
+            <span>Пригласи друга</span>
+        </nav>
+
+        <div class="ref-hero">
+            <div class="ref-hero__icon" aria-hidden="true">🎁</div>
+            <h1>Пригласите друга — получите <span class="text-primary">{{ bonus_amount }} ₽</span></h1>
+            <p class="muted">
+                Отправьте другу вашу персональную ссылку. Когда он зарегистрируется
+                и совершит первую покупку — на ваш баланс поступит {{ bonus_amount }} ₽.
+            </p>
+        </div>
+
+        <div class="ref-card">
+            <div class="ref-card__row">
+                <div>
+                    <div class="muted small">Ваша ссылка</div>
+                    <input type="text" readonly value="{{ ref_link }}" id="ref-link-input"
+                           class="ref-card__input" onclick="this.select()">
+                </div>
+                <button type="button" class="btn btn-primary"
+                        onclick="navigator.clipboard.writeText(document.getElementById('ref-link-input').value).then(()=>{window.ShoShopToast && window.ShoShopToast.show('Ссылка скопирована','success');});">
+                    Скопировать
+                </button>
+            </div>
+            <div class="ref-card__row">
+                <div>
+                    <div class="muted small">Персональный код</div>
+                    <div class="ref-card__code">{{ ref_code }}</div>
+                </div>
+                <div class="ref-card__share">
+                    <a class="btn btn-ghost" target="_blank" rel="noopener"
+                       href="https://t.me/share/url?url={{ ref_link|urlencode }}&text={% filter urlencode %}Присоединяйся к ShoShop — маркетплейсу цифровых товаров!{% endfilter %}">Telegram</a>
+                    <a class="btn btn-ghost" target="_blank" rel="noopener"
+                       href="https://wa.me/?text={% filter urlencode %}ShoShop — цифровые товары с мгновенной доставкой: {% endfilter %}{{ ref_link|urlencode }}">WhatsApp</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="ref-stats">
+            <div class="ref-stat">
+                <div class="ref-stat__value">{{ referrals|length }}</div>
+                <div class="ref-stat__label">Приглашено</div>
+            </div>
+            <div class="ref-stat">
+                <div class="ref-stat__value">{{ paid_count }}</div>
+                <div class="ref-stat__label">Оформили оплату</div>
+            </div>
+            <div class="ref-stat">
+                <div class="ref-stat__value">{{ total_earned }} ₽</div>
+                <div class="ref-stat__label">Заработано</div>
+            </div>
+        </div>
+
+        <h2 style="margin-top: var(--space-6);">Ваши приглашённые</h2>
+        {% if referrals %}
+        <table class="table table--bordered">
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Дата регистрации</th>
+                    <th>Бонус</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in referrals %}
+                <tr>
+                    <td>{{ r.email }}</td>
+                    <td>{{ r.date_joined|date:"d.m.Y H:i" }}</td>
+                    <td>
+                        {% if r.referral_bonus_paid %}
+                            <span class="chip" style="background: #10b98133; color: #059669;">выплачен</span>
+                        {% else %}
+                            <span class="chip">ожидает</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state__icon" aria-hidden="true">👥</div>
+            <h2 class="empty-state__title">Пока никто не воспользовался вашей ссылкой</h2>
+            <p class="muted">Поделитесь ссылкой с друзьями в мессенджерах или соцсетях.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

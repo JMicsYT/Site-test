@@ -1,0 +1,67 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}Обращения в поддержку — ShoShop{% endblock %}
+
+{% block breadcrumb_items %}
+    <span class="sep">/</span> <span>Поддержка</span>
+{% endblock %}
+
+{% block content %}
+<h1 class="dashboard-page-title">Обращения в поддержку</h1>
+
+<form method="get" class="dashboard-toolbar">
+    <label class="field">
+        <span>Статус</span>
+        <select name="status" onchange="this.form.submit()">
+            <option value="">Все</option>
+            {% for key, label in status_choices %}
+                <option value="{{ key }}" {% if status_filter == key %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <button type="submit" class="btn btn-ghost btn-sm">Применить</button>
+</form>
+
+<div class="dashboard-table-wrap">
+    <table class="dashboard-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Пользователь</th>
+                <th>Статус</th>
+                <th>Сообщений</th>
+                <th>Обновлён</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in tickets %}
+                <tr>
+                    <td>{{ t.pk }}</td>
+                    <td>{{ t.user.email }}</td>
+                    <td>{{ t.get_status_display }}</td>
+                    <td>{{ t.messages.count }}</td>
+                    <td>{{ t.updated_at|date:"d.m.Y H:i" }}</td>
+                    <td class="actions">
+                        <a href="{% url 'dashboard:support_detail' t.pk %}" class="btn btn-primary btn-sm">Открыть</a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="6" class="muted">Обращений пока нет.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if paginator.num_pages > 1 %}
+<nav class="pagination" aria-label="Страницы">
+    {% if tickets.has_previous %}
+        <a href="?page={{ tickets.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}">← Назад</a>
+    {% endif %}
+    <span class="current">Стр. {{ tickets.number }} из {{ paginator.num_pages }}</span>
+    {% if tickets.has_next %}
+        <a href="?page={{ tickets.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}">Вперёд →</a>
+    {% endif %}
+</nav>
+{% endif %}
+{% endblock %}

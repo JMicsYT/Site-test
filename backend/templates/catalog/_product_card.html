@@ -1,0 +1,76 @@
+<article class="product-card{% if product.has_discount %} product-card--has-discount{% endif %}" data-product-id="{{ product.id }}">
+    <a href="{% url 'catalog:detail' product.slug %}" class="product-card__image-wrap">
+        {% if product.is_new %}
+            <span class="product-badge product-badge--new">Новинка</span>
+        {% endif %}
+        {% if product.has_discount %}
+            <span class="product-badge product-badge--sale">−{{ product.discount_percent }}%</span>
+        {% endif %}
+        {% if product.get_first_image_url %}
+            <img src="{{ product.get_first_image_url }}" alt="{{ product.name }}" class="product-card__image" loading="lazy">
+        {% else %}
+            <div class="product-card__placeholder">{{ product.get_product_type_display }}</div>
+        {% endif %}
+    </a>
+
+    <div class="product-card__quick-actions">
+        {% if user.is_authenticated %}
+        <button type="button"
+                class="quick-action quick-action--fav {% if product.id in favorite_ids %}is-active{% endif %}"
+                data-fav-toggle data-product-id="{{ product.id }}"
+                title="{% if product.id in favorite_ids %}В избранном{% else %}В избранное{% endif %}"
+                aria-label="В избранное">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </button>
+        {% endif %}
+        <button type="button"
+                class="quick-action quick-action--compare {% if product.id in compare_ids %}is-active{% endif %}"
+                data-compare-toggle data-product-id="{{ product.id }}"
+                title="{% if product.id in compare_ids %}В сравнении{% else %}Сравнить{% endif %}"
+                aria-label="Сравнить">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h13l-3-3"/><path d="M21 18H8l3 3"/></svg>
+        </button>
+    </div>
+
+    <div class="product-card__body">
+        <div class="product-card__chips">
+            <span class="chip chip--small">{{ product.get_product_type_display }}</span>
+            <span class="chip chip--small chip--purpose">{{ product.get_purpose_display }}</span>
+        </div>
+        <a href="{% url 'catalog:detail' product.slug %}" class="product-card__title">{{ product.name }}</a>
+        {% with avg=product.avg_rating rc=product.reviews_count %}
+            {% if rc and rc > 0 %}
+            <div class="product-card__rating" title="Средний рейтинг {{ avg|floatformat:1 }} / 5">
+                <span class="rating-stars" aria-hidden="true">
+                    {% for i in "12345" %}
+                        {% if forloop.counter <= avg|floatformat:0|add:0 %}★{% else %}☆{% endif %}
+                    {% endfor %}
+                </span>
+                <span class="muted small">{{ avg|floatformat:1 }} ({{ rc }})</span>
+            </div>
+            {% endif %}
+        {% endwith %}
+        <div class="product-card__footer">
+            <div class="product-card__prices">
+                {% if product.has_discount %}
+                    <span class="product-card__price">{{ product.discount_price }} ₽</span>
+                    <span class="product-card__price-old">{{ product.price }} ₽</span>
+                {% else %}
+                    <span class="product-card__price">{{ product.price }} ₽</span>
+                {% endif %}
+            </div>
+            <div class="product-card__actions">
+                <form method="post" action="{% url 'orders:add_to_cart' product.id %}" class="product-card__form">
+                    {% csrf_token %}
+                    <button class="btn btn-ghost btn-sm" type="submit" title="В корзину">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                    </button>
+                </form>
+                <form method="post" action="{% url 'orders:checkout' product.id %}" class="product-card__form">
+                    {% csrf_token %}
+                    <button class="btn btn-primary btn-sm" type="submit">Купить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</article>

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Мои заказы — ShoShop{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <h1>Мои заказы</h1>
+        <div class="table">
+            <div class="table-row table-header">
+                <div>#</div>
+                <div>Статус</div>
+                <div>Сумма</div>
+                <div>Дата</div>
+            </div>
+            {% for o in orders %}
+                <div class="table-row">
+                    <div>{{ o.id }}</div>
+                    <div>{{ o.get_status_display }}</div>
+                    <div>{{ o.amount }} {{ o.currency }}</div>
+                    <div>{{ o.created_at|date:"d.m.Y H:i" }}</div>
+                </div>
+            {% empty %}
+                <p class="muted">У вас ещё нет заказов.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+

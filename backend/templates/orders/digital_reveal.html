@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}{{ access.product.name }} — ShoShop{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container" style="max-width: 680px;">
+        <nav class="breadcrumb">
+            <a href="{% url 'home' %}">Главная</a>
+            <span class="sep">/</span>
+            <a href="{% url 'accounts:dashboard' %}">Личный кабинет</a>
+            <span class="sep">/</span>
+            <span>Цифровой товар</span>
+        </nav>
+        <div class="card">
+            <h1 style="margin-top:0;">{{ access.product.name }}</h1>
+            <p class="muted">
+                Тип:
+                <strong>{{ access.digital_item.get_item_type_display|default:"—" }}</strong>
+                · Куплен {{ access.purchased_at|date:"d.m.Y H:i" }}
+            </p>
+
+            <div class="alert alert-warning" role="alert">
+                <strong>Важно:</strong> эта ссылка одноразовая и действует ограниченное время.
+                Скопируйте значение в надёжное место — повторно открыть эту же ссылку
+                можно не больше {{ max_uses }} раз.
+                Текущее использование: <strong>{{ uses }}/{{ max_uses }}</strong>.
+            </div>
+
+            {% if plain_value %}
+            <div style="margin: var(--space-3) 0;">
+                <label for="dv" class="muted">Ваше значение:</label>
+                <div style="display:flex; gap: var(--space-2); align-items: stretch;">
+                    <input id="dv" type="text" readonly value="{{ plain_value }}"
+                           style="flex:1; font-family: monospace; font-size: 1.05rem; padding: var(--space-2); border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--muted);">
+                    <button type="button" class="btn btn-primary" id="copy-btn">Скопировать</button>
+                </div>
+            </div>
+            <script>
+            (function(){
+                var btn = document.getElementById('copy-btn');
+                var inp = document.getElementById('dv');
+                if (!btn || !inp) return;
+                btn.addEventListener('click', function(){
+                    inp.select();
+                    inp.setSelectionRange(0, 99999);
+                    try {
+                        navigator.clipboard.writeText(inp.value).then(function(){
+                            btn.textContent = 'Скопировано ✓';
+                            setTimeout(function(){ btn.textContent = 'Скопировать'; }, 2000);
+                        });
+                    } catch(e) {
+                        document.execCommand('copy');
+                        btn.textContent = 'Скопировано ✓';
+                    }
+                });
+            })();
+            </script>
+            {% else %}
+            <p class="muted">Цифровой элемент пока не привязан к этому доступу. Обратитесь в поддержку.</p>
+            {% endif %}
+
+            <div style="margin-top: var(--space-4); display: flex; gap: var(--space-2);">
+                <a href="{% url 'accounts:dashboard' %}" class="btn btn-ghost">Назад в кабинет</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

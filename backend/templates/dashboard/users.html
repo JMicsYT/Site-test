@@ -1,0 +1,63 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}Пользователи — ShoShop{% endblock %}
+
+{% block breadcrumb_items %}
+    <span class="sep">/</span> <span>Пользователи</span>
+{% endblock %}
+
+{% block content %}
+<h1 class="dashboard-page-title">Пользователи</h1>
+
+<form method="get" class="dashboard-toolbar">
+    <label class="field">
+        <span>Поиск</span>
+        <input type="search" name="q" value="{{ q }}" placeholder="Email, имя, фамилия">
+    </label>
+    <button type="submit" class="btn btn-primary btn-sm">Найти</button>
+</form>
+
+<div class="dashboard-table-wrap">
+    <table class="dashboard-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Email</th>
+                <th>Имя</th>
+                <th>Роль</th>
+                <th>Статус</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+                <tr>
+                    <td>{{ u.id }}</td>
+                    <td><a href="{% url 'dashboard:user_edit' u.id %}">{{ u.email }}</a></td>
+                    <td>{{ u.get_full_name|default:"—" }}</td>
+                    <td>{{ u.get_role_display }}</td>
+                    <td>{% if u.is_active %}Активен{% else %}Заблокирован{% endif %}</td>
+                    <td class="actions">
+                        <a href="{% url 'dashboard:user_edit' u.id %}" class="btn btn-outline btn-sm">Изменить</a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="6" class="muted">Пользователей пока нет.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if paginator.num_pages > 1 %}
+<nav class="pagination">
+    {% if users.has_previous %}
+        <a href="?page={{ users.previous_page_number }}{% if q %}&q={{ q|urlencode }}{% endif %}">←</a>
+    {% endif %}
+    <span class="current">Стр. {{ users.number }} из {{ paginator.num_pages }}</span>
+    {% if users.has_next %}
+        <a href="?page={{ users.next_page_number }}{% if q %}&q={{ q|urlencode }}{% endif %}">→</a>
+    {% endif %}
+</nav>
+{% endif %}
+{% endblock %}
+

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Отключение 2FA — ShoShop{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container" style="max-width: 480px;">
+        <div class="card">
+            <h1 style="margin-top:0;">Отключение 2FA</h1>
+            <div class="alert alert-warning">
+                Отключение двухфакторной аутентификации снижает защиту вашего аккаунта.
+            </div>
+            <form method="post" style="display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-3);">
+                {% csrf_token %}
+                <label for="code">Введите текущий 6-значный код из приложения:</label>
+                <input type="text" id="code" name="code" inputmode="numeric" pattern="\d{6}"
+                       maxlength="6" autocomplete="one-time-code" required
+                       style="font-size: 1.5rem; text-align: center; letter-spacing: 0.4em; font-family: monospace;">
+                <div style="display: flex; gap: var(--space-2); margin-top: var(--space-2);">
+                    <button type="submit" class="btn btn-primary">Отключить 2FA</button>
+                    <a href="{% url 'accounts:dashboard' %}" class="btn btn-ghost">Отмена</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

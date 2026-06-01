@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Подтверждение email — ShoShop{% endblock %}
+
+{% block content %}
+<section class="section auth-section">
+    <div class="container auth-container">
+        <div class="auth-card">
+            {% if invalid %}
+                <h1>Ссылка недействительна</h1>
+                <p class="muted">Токен подтверждения устарел или некорректен.</p>
+            {% else %}
+                <h1>Email подтверждён</h1>
+                <p class="muted">Ваш адрес электронной почты успешно подтверждён.</p>
+            {% endif %}
+            <a href="{% url 'accounts:dashboard' %}" class="btn btn-primary btn-block">В кабинет</a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+

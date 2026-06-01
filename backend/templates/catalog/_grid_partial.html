@@ -1,0 +1,26 @@
+{# Партиал: сетка товаров + пагинация (для AJAX-подстановки). #}
+<div class="products-grid" data-grid>
+    {% for product in products %}
+        {% include "catalog/_product_card.html" with product=product %}
+    {% empty %}
+        <div class="empty-state" style="grid-column: 1/-1;">
+            <div class="empty-state__icon" aria-hidden="true">🔍</div>
+            <h2 class="empty-state__title">Ничего не найдено</h2>
+            <p class="muted">Попробуйте ослабить фильтры или <a href="{% url 'catalog:list' %}">сбросить их</a>.</p>
+        </div>
+    {% endfor %}
+</div>
+
+{% if paginator.num_pages > 1 %}
+<nav class="pagination pagination--catalog" aria-label="Страницы каталога">
+    {% if page_obj.has_previous %}
+        <a href="?page=1{% if pagination_query %}&{{ pagination_query }}{% endif %}" class="pagination-link">Первая</a>
+        <a href="?page={{ page_obj.previous_page_number }}{% if pagination_query %}&{{ pagination_query }}{% endif %}">← Назад</a>
+    {% endif %}
+    <span class="pagination-current">Стр. {{ page_obj.number }} из {{ paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if pagination_query %}&{{ pagination_query }}{% endif %}">Вперёд →</a>
+        <a href="?page={{ paginator.num_pages }}{% if pagination_query %}&{{ pagination_query }}{% endif %}" class="pagination-link">Последняя</a>
+    {% endif %}
+</nav>
+{% endif %}

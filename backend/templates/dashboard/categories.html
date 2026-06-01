@@ -1,0 +1,44 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}Категории — ShoShop{% endblock %}
+
+{% block breadcrumb_items %}
+    <span class="sep">/</span> <span>Категории</span>
+{% endblock %}
+
+{% block content %}
+<h1 class="dashboard-page-title">Категории</h1>
+<p class="dashboard-actions">
+    <a href="{% url 'dashboard:category_new' %}" class="btn btn-primary">Новая категория</a>
+</p>
+
+<div class="dashboard-table-wrap">
+    <table class="dashboard-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Название</th>
+                <th>Слаг</th>
+                <th>Порядок</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in categories %}
+                <tr>
+                    <td>{{ c.id }}</td>
+                    <td><a href="{% url 'dashboard:category_edit' c.id %}">{{ c.name }}</a></td>
+                    <td><code>{{ c.slug }}</code></td>
+                    <td>{{ c.sort_order }}</td>
+                    <td class="actions">
+                        <a href="{% url 'dashboard:category_edit' c.id %}" class="btn btn-outline btn-sm">Изменить</a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="5" class="muted">Категорий пока нет.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+

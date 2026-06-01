@@ -1,0 +1,84 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}Заказ #{{ order.id }} — ShoShop{% endblock %}
+
+{% block breadcrumb_items %}
+    <span class="sep">/</span> <a href="{% url 'dashboard:orders' %}">Заказы</a>
+    <span class="sep">/</span> <span>#{{ order.id }}</span>
+{% endblock %}
+
+{% block content %}
+<h1 class="dashboard-page-title">Заказ #{{ order.id }}</h1>
+
+<div class="dashboard-toolbar">
+    <a href="{% url 'dashboard:order_edit' order.id %}" class="btn btn-primary">Изменить статус</a>
+    <a href="{% url 'dashboard:orders' %}" class="btn btn-ghost">← К списку</a>
+</div>
+
+<div class="settings-section">
+    <h2>Информация о заказе</h2>
+    <p><strong>Пользователь:</strong> {{ order.user.email }}</p>
+    <p><strong>Статус:</strong> {{ order.get_status_display }}</p>
+    <p><strong>Сумма:</strong> {{ order.amount }} {{ order.currency }}</p>
+    <p><strong>Создан:</strong> {{ order.created_at|date:"d.m.Y H:i" }}</p>
+    {% if order.transaction_id %}
+        <p><strong>ID транзакции:</strong> {{ order.transaction_id }}</p>
+    {% endif %}
+</div>
+
+<div class="settings-section">
+    <h2>Позиции заказа</h2>
+    <div class="dashboard-table-wrap">
+        <table class="dashboard-table">
+            <thead>
+                <tr>
+                    <th>Товар</th>
+                    <th>Цена</th>
+                    <th>Кол-во</th>
+                    <th>Сумма</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items.all %}
+                    <tr>
+                        <td><a href="{% url 'dashboard:product_edit' item.product_id %}">{{ item.product.name }}</a></td>
+                        <td>{{ item.price }} ₽</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ item.subtotal }} ₽</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="4" class="muted">Нет позиций.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="settings-section">
+    <h2>Таймлайн</h2>
+    {% if events %}
+    <ul class="order-timeline">
+        {% for e in events %}
+        <li class="order-timeline__item">
+            <span class="order-timeline__dot order-timeline__dot--{{ e.event_type }}"></span>
+            <div class="order-timeline__title">{{ e.get_event_type_display }}</div>
+            <div class="order-timeline__meta">
+                {{ e.created_at|date:"d.m.Y H:i" }}
+                {% if e.actor %} · {{ e.actor.email }}{% endif %}
+            </div>
+            {% if e.description %}<div>{{ e.description }}</div>{% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+        <p class="muted">Событий в истории заказа пока нет.</p>
+    {% endif %}
+
+    <form method="post" style="margin-top: 14px; display: flex; gap: 8px;">
+        {% csrf_token %}
+        <input type="text" name="note" maxlength="500" placeholder="Добавить внутренний комментарий к заказу…"
+               style="flex: 1; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--background); color: var(--foreground);">
+        <button type="submit" class="btn btn-primary btn-sm">Добавить</button>
+    </form>
+</div>
+{% endblock %}

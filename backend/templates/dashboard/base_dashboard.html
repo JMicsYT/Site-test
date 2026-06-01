@@ -1,0 +1,85 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <title>{% block title %}Админка — ShoShop{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{% static 'css/main.css' %}?v=15">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=8">
+</head>
+<body class="shoshop-body dashboard-body">
+<header class="dashboard-header">
+    <div class="dashboard-header-inner">
+        <a href="{% url 'dashboard:index' %}" class="dashboard-logo">ShoShop Admin</a>
+        <div class="dashboard-header-actions">
+            <button type="button" class="theme-toggle btn-ghost" aria-label="Переключить тему" title="Светлая / тёмная тема">
+                <svg class="icon-light" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+                <svg class="icon-dark" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            </button>
+            <a href="{% url 'home' %}" class="btn btn-ghost btn-sm">На сайт</a>
+            <a href="{% url 'admin:index' %}" class="btn btn-outline btn-sm">Django Admin</a>
+        </div>
+    </div>
+</header>
+
+<div class="dashboard-layout">
+    <aside class="dashboard-sidebar">
+        <nav class="dashboard-nav">
+            <a href="{% url 'dashboard:index' %}" class="dashboard-nav-item {% if request.resolver_match.url_name == 'index' %}active{% endif %}">
+                <span class="nav-icon">📊</span> Дашборд
+            </a>
+            <a href="{% url 'dashboard:products' %}" class="dashboard-nav-item {% if 'product' in request.resolver_match.url_name %}active{% endif %}">
+                <span class="nav-icon">📦</span> Товары
+            </a>
+            <a href="{% url 'dashboard:categories' %}" class="dashboard-nav-item {% if 'categor' in request.resolver_match.url_name %}active{% endif %}">
+                <span class="nav-icon">📁</span> Категории
+            </a>
+            <a href="{% url 'dashboard:orders' %}" class="dashboard-nav-item {% if 'order' in request.resolver_match.url_name %}active{% endif %}">
+                <span class="nav-icon">🛒</span> Заказы
+            </a>
+            <a href="{% url 'dashboard:users' %}" class="dashboard-nav-item {% if 'user' in request.resolver_match.url_name %}active{% endif %}">
+                <span class="nav-icon">👤</span> Пользователи
+            </a>
+            <a href="{% url 'dashboard:reviews' %}" class="dashboard-nav-item {% if request.resolver_match.url_name == 'reviews' %}active{% endif %}">
+                <span class="nav-icon">⭐</span> Отзывы
+                {% if sidebar_pending_reviews %}<span class="nav-badge">{{ sidebar_pending_reviews }}</span>{% endif %}
+            </a>
+            <a href="{% url 'dashboard:support_list' %}" class="dashboard-nav-item {% if 'support' in request.resolver_match.url_name %}active{% endif %}">
+                <span class="nav-icon">💬</span> Поддержка
+                {% if sidebar_open_tickets %}<span class="nav-badge nav-badge--alert">{{ sidebar_open_tickets }}</span>{% endif %}
+            </a>
+            <a href="{% url 'dashboard:settings' %}" class="dashboard-nav-item {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
+                <span class="nav-icon">⚙️</span> Настройки
+            </a>
+            <a href="{% url 'dashboard:security_log' %}" class="dashboard-nav-item {% if request.resolver_match.url_name == 'security_log' %}active{% endif %}">
+                <span class="nav-icon">🔒</span> Безопасность
+            </a>
+        </nav>
+    </aside>
+
+    <main class="dashboard-content">
+        {% if messages %}
+            <div class="dashboard-messages">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% block breadcrumb %}
+            <nav class="breadcrumb">
+                <a href="{% url 'dashboard:index' %}">Админка</a>
+                {% block breadcrumb_items %}{% endblock %}
+            </nav>
+        {% endblock %}
+
+        {% block content %}{% endblock %}
+    </main>
+</div>
+<script src="{% static 'js/theme.js' %}"></script>
+{% block dashboard_scripts %}{% endblock %}
+</body>
+</html>

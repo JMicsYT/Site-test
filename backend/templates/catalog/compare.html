@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Сравнение товаров — ShoShop{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <div>
+                <h1 class="section-title">Сравнение товаров</h1>
+                <p class="muted small" style="margin: 0.25rem 0 0;">Добавлено: {{ products|length }} из 4</p>
+            </div>
+            {% if products %}
+                <form method="post" action="{% url 'compare_clear' %}" style="margin: 0;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline btn-sm">Очистить сравнение</button>
+                </form>
+            {% endif %}
+        </div>
+
+        {% if products %}
+        <div class="compare-table">
+            <div class="compare-row compare-row--head">
+                <div class="compare-cell compare-cell--label"></div>
+                {% for p in products %}
+                <div class="compare-cell compare-cell--head">
+                    <a href="{% url 'catalog:detail' p.slug %}" class="compare-head__title">{{ p.name }}</a>
+                    {% if p.get_first_image_url %}
+                        <img src="{{ p.get_first_image_url }}" alt="{{ p.name }}" loading="lazy" class="compare-head__image">
+                    {% endif %}
+                    <div class="compare-head__actions">
+                        <button type="button" class="btn btn-outline btn-sm" data-compare-toggle data-product-id="{{ p.id }}">Убрать</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% for row in rows %}
+            <div class="compare-row">
+                <div class="compare-cell compare-cell--label">{{ row.label }}</div>
+                {% for cell in row.cells %}
+                <div class="compare-cell">{{ cell }}</div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state__icon" aria-hidden="true">⇅</div>
+            <h2 class="empty-state__title">Список сравнения пуст</h2>
+            <p class="muted">Добавьте до 4 товаров кнопкой «Сравнить» в карточке, чтобы увидеть их характеристики рядом.</p>
+            <a href="{% url 'catalog:list' %}" class="btn btn-primary" style="margin-top: var(--space-3);">Перейти в каталог</a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

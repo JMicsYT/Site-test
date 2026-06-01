@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ title }} — ShoShop{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="card">
+            <h1>{{ title }}</h1>
+            <div class="legal-content">{{ content|linebreaks }}</div>
+        </div>
+    </div>
+</section>
+{% endblock %}
